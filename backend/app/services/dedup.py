@@ -1,30 +1,33 @@
-"""ERROR-PANEL — Deduplication service.
+﻿"""ERROR-PANEL — Enhanced Deduplication Service.
 
-Fingerprint-based duplicate detection for imported VPN profiles.
-Fingerprint = SHA-256 of (protocol|server_host|server_port|uuid_or_publickey),
-sorted, lowercased.
+Fingerprint-based duplicate detection with improved algorithm.
+Uses multiple components for stronger fingerprinting.
 """
 
 import hashlib
-import json
 from typing import Optional
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..models import Profile
-
+from backend.core.logger import logger
 
 def fingerprint(cfg: dict) -> str:
     """Compute a dedup fingerprint for a parsed config dict.
 
-    The fingerprint is SHA-256 of the sorted, lowercased concatenation of:
-      protocol, server_host, server_port, and the UUID or public key
-      from fingerprint_data.
+    Enhanced algorithm uses multiple components for stronger fingerprinting:
+    - protocol
+    - server_host (normalized)
+    - server_port
+    - uuid or public_key (from fingerprint_data)
+    - advanced security parameters (publicKey for Reality, etc.)
+    
+    Components are sorted and lowercased for stable hashing.
 
     Args:
         cfg: A dict as returned by parse_config(), with keys like
-             name, protocol, server_host, server_port, fingerprint_data.
+             name, protocol, server_host, server_port, fingerprint_data, advanced_params.
 
     Returns:
         Hex SHA-256 hash string.
@@ -33,16 +36,39 @@ def fingerprint(cfg: dict) -> str:
     host = (cfg.get("server_host") or "").lower()
     port = str(cfg.get("server_port") or "")
 
-    # Extract UUID or public_key from fingerprint_data
+    # Extract identifiers from fingerprint_data
     fp_data = cfg.get("fingerprint_data") or {}
     uuid_ = (fp_data.get("uuid") or "").lower()
     public_key = (fp_data.get("public_key") or "").lower()
+    password = (fp_data.get("password") or "").lower()  # For Hysteria2
 
-    # Sort all non-empty components for stable hash
-    components = sorted(filter(None, [protocol, host, port, uuid_, public_key]))
+    # Extract advanced security parameters
+    adv_params = cfg.get("advanced_params") or {}
+    adv_public_key = (adv_params.get("publicKey") or adv_params.get("public_key") or "").lower()
+    
+    # Combine all public keys (Reality, WireGuard, etc.)
+    all_keys = [public_key, adv_public_key] if any([public_key, adv_public_key]) else []
+    combined_key = "|".join(sorted(set(filter(None, all_keys))))
+
+    # Build components list
+    components = [
+        protocol,
+        host,
+        port,
+        uuid_,
+        combined_key,
+        password,
+    ]
+    
+    # Filter empty components and sort for stability
+    components = sorted(filter(None, components))
+    
     raw = "|".join(components)
-    return hashlib.sha256(raw.encode("utf-8")).hexdigest()
-
+    hash_value = hashlib.sha256(raw.encode("utf-8")).hexdigest()
+    
+    logger.debug(f"Generated fingerprint: {hash_value[:16]}... for {protocol}://{host}:{port}")
+    
+    return hash_value
 
 async def find_duplicate(
     db: AsyncSession, fp: str
@@ -59,4 +85,9 @@ async def find_duplicate(
     result = await db.execute(
         select(Profile).where(Profile.fingerprint == fp).limit(1)
     )
-    return result.scalar_one_or_none()
+    duplicate = result.scalar_one_or_none()
+    
+    if duplicate:
+        logger.info(f"Found duplicate profile: {duplicate.id} (fingerprint: {fp[:16]}...)")
+    
+    return duplicate

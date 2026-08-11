@@ -1,4 +1,4 @@
-"""ERROR-PANEL — SQLAlchemy ORM models.
+﻿"""ERROR-PANEL — SQLAlchemy ORM models.
 
 Tables: sources, profiles, metrics, security_scans, audit_logs, settings
 Relationships: source.profiles, profile.metrics, profile.security_scans
@@ -118,3 +118,4 @@ class Settings(Base):
 
     key = Column(String(64), primary_key=True)
     value = Column(Text, nullable=False)  # JSON text
+

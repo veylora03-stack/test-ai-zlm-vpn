@@ -48,7 +48,7 @@ class Profile(Base):
     source_id = Column(Integer, ForeignKey("sources.id"), nullable=True)
     name = Column(Text, nullable=False)
     protocol = Column(Text, nullable=False)
-    # wireguard | openvpn | vless | vmess | xray | shadowsocks | trojan
+    # wireguard | openvpn | vless | vmess | shadowsocks | trojan | hysteria2 | tuic
     server_host = Column(Text, nullable=True)
     server_port = Column(Integer, nullable=True)
     country_code = Column(Text, nullable=True)  # ISO 3166-1 alpha-2
@@ -58,6 +58,7 @@ class Profile(Base):
     duplicate_of = Column(Integer, ForeignKey("profiles.id"), nullable=True)
     fingerprint = Column(String(64), nullable=True, index=True)  # SHA-256 hex for dedup
     config_ref = Column(Text, nullable=True)
+    advanced_params_json = Column(Text, nullable=True)  # JSON object for advanced params (sni, alpn, flow, etc.)
     notes = Column(Text, nullable=True)
     created_at = Column(DateTime, nullable=False, default=func.now())
     updated_at = Column(DateTime, nullable=False, default=func.now(), onupdate=func.now())
@@ -118,4 +119,5 @@ class Settings(Base):
 
     key = Column(String(64), primary_key=True)
     value = Column(Text, nullable=False)  # JSON text
+
 

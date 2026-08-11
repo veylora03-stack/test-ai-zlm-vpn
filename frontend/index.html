@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ERROR - Mission Control</title>
+  <link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+  <div class="app-layout">
+
+    <!-- ── Sidebar ────────────────────────────────────────────────────── -->
+    <aside class="sidebar">
+      <div class="brand">
+        <h1>ERROR</h1>
+        <p>Mission Control</p>
+      </div>
+      <ul class="nav-list">
+        <li><a href="#" class="active" data-tab="dashboard"><span class="nav-icon">📊</span> داشبورد</a></li>
+        <li><a href="#" data-tab="servers"><span class="nav-icon">🖥️</span> سرورها</a></li>
+        <li><a href="#" data-tab="sources"><span class="nav-icon">📡</span> منابع</a></li>
+        <li><a href="#" data-tab="quarantine"><span class="nav-icon">🛡️</span> قرنطینه</a></li>
+        <li><a href="#" data-tab="analytics"><span class="nav-icon">📈</span> تحلیل</a></li>
+        <li><a href="#" data-tab="settings"><span class="nav-icon">⚙️</span> تنظیمات</a></li>
+        <li><a href="#" data-tab="logs"><span class="nav-icon">📋</span> لاگ‌ها</a></li>
+      </ul>
+    </aside>
+
+    <!-- ── Main Content ───────────────────────────────────────────────── -->
+    <main class="main-content">
+
+      <!-- Dashboard -->
+      <section id="tab-dashboard" class="tab-section active">
+        <h2 class="page-title">📊 داشبورد</h2>
+        <div class="kpi-grid" id="kpi-grid"></div>
+        <div id="top-lists-grid" class="top-lists-grid"></div>
+        <div class="glass">
+          <h3 style="margin-bottom:12px">آخرین پروفایل‌ها</h3>
+          <ul class="recent-list" id="recent-profiles"></ul>
+        </div>
+      </section>
+
+      <!-- Servers -->
+      <section id="tab-servers" class="tab-section">
+        <h2 class="page-title">🖥️ سرورها</h2>
+        <div class="toolbar" id="servers-toolbar">
+          <input type="text" class="toolbar-input" id="servers-search" placeholder="جستجو...">
+          <select class="toolbar-select" id="servers-status-filter">
+            <option value="">همه وضعیت‌ها</option>
+            <option value="new">جدید</option>
+            <option value="quarantined">قرنطینه</option>
+            <option value="pending_review">در انتظار بررسی</option>
+            <option value="approved">تایید شده</option>
+            <option value="tested">تست شده</option>
+            <option value="failed">ناموفق</option>
+            <option value="blocked">مسدود</option>
+            <option value="archived">آرشیو</option>
+          </select>
+          <select class="toolbar-select" id="servers-protocol-filter">
+            <option value="">همه پروتکل‌ها</option>
+            <option value="wireguard">WireGuard</option>
+            <option value="openvpn">OpenVPN</option>
+            <option value="vless">VLess</option>
+            <option value="vmess">VMess</option>
+            <option value="xray">Xray</option>
+            <option value="shadowsocks">Shadowsocks</option>
+          </select>
+          <button class="btn btn-ghost" id="servers-refresh" type="button">🔄 بروزرسانی</button>
+          <button class="btn btn-accent" id="servers-add" type="button">➕ افزودن</button>
+        </div>
+        <div class="glass" style="overflow-x:auto">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>نام</th>
+                <th>پروتکل</th>
+                <th>سرور</th>
+                <th>کشور</th>
+                <th>وضعیت</th>
+                <th>ریسک</th>
+                <th>عملیات</th>
+              </tr>
+            </thead>
+            <tbody id="servers-tbody"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Sources -->
+      <section id="tab-sources" class="tab-section">
+        <h2 class="page-title">📡 منابع</h2>
+        <form class="inline-form" id="source-add-form">
+          <div class="form-group">
+            <label>نام</label>
+            <input type="text" name="name" required placeholder="مثال: FreeVPN GitHub">
+          </div>
+          <div class="form-group">
+            <label>نوع</label>
+            <select name="type">
+              <option value="github">GitHub</option>
+              <option value="url">URL</option>
+              <option value="manual">دستی</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>آدرس</label>
+            <input type="url" name="url" placeholder="https://...">
+          </div>
+          <div class="form-group">
+            <label>یادداشت</label>
+            <input type="text" name="notes" placeholder="اختیاری">
+          </div>
+          <button type="submit" class="btn btn-accent">➕ افزودن منبع</button>
+        </form>
+        <div class="source-cards" id="source-cards"></div>
+      </section>
+
+      <!-- Quarantine -->
+      <section id="tab-quarantine" class="tab-section">
+        <h2 class="page-title">🛡️ قرنطینه</h2>
+        <div class="glass" style="overflow-x:auto">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>نام</th>
+                <th>پروتکل</th>
+                <th>سرور</th>
+                <th>ریسک</th>
+                <th>مرجع کانفیگ</th>
+                <th>هشدارها</th>
+                <th>عملیات</th>
+              </tr>
+            </thead>
+            <tbody id="quarantine-tbody"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Analytics -->
+      <section id="tab-analytics" class="tab-section">
+        <h2 class="page-title">📈 تحلیل</h2>
+        <div id="analytics-content"></div>
+      </section>
+
+      <!-- Settings -->
+      <section id="tab-settings" class="tab-section">
+        <h2 class="page-title">⚙️ تنظیمات</h2>
+        <div id="settings-content"></div>
+      </section>
+
+      <!-- Logs -->
+      <section id="tab-logs" class="tab-section">
+        <h2 class="page-title">📋 لاگ‌ها</h2>
+        <div class="glass" style="overflow-x:auto">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>زمان</th>
+                <th>عمل</th>
+                <th>موجودیت</th>
+                <th>شناسه</th>
+                <th>جزئیات</th>
+              </tr>
+            </thead>
+            <tbody id="logs-tbody"></tbody>
+          </table>
+        </div>
+        <div id="logs-content"></div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- ── Profile Modal ─────────────────────────────────────────────────── -->
+  <div class="modal-overlay" id="profile-modal">
+    <div class="modal">
+      <h2 id="modal-title">افزودن پروفایل</h2>
+      <form id="profile-form">
+        <input type="hidden" name="id" id="modal-profile-id">
+        <div class="form-group">
+          <label>نام</label>
+          <input type="text" name="name" required placeholder="مثال: DE-Frankfurt-01">
+        </div>
+        <div class="form-group">
+          <label>پروتکل</label>
+          <select name="protocol">
+            <option value="wireguard">WireGuard</option>
+            <option value="openvpn">OpenVPN</option>
+            <option value="vless">VLess</option>
+            <option value="vmess">VMess</option>
+            <option value="xray">Xray</option>
+            <option value="shadowsocks">Shadowsocks</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>آدرس سرور</label>
+          <input type="text" name="server_host" placeholder="10.0.0.1">
+        </div>
+        <div class="form-group">
+          <label>پورت</label>
+          <input type="number" name="server_port" placeholder="51820">
+        </div>
+        <div class="form-group">
+          <label>کد کشور</label>
+          <input type="text" name="country_code" maxlength="2" placeholder="DE">
+        </div>
+        <div class="form-group">
+          <label>وضعیت</label>
+          <select name="status">
+            <option value="new">جدید</option>
+            <option value="quarantined">قرنطینه</option>
+            <option value="pending_review">در انتظار بررسی</option>
+            <option value="approved">تایید شده</option>
+            <option value="tested">تست شده</option>
+            <option value="failed">ناموفق</option>
+            <option value="blocked">مسدود</option>
+            <option value="archived">آرشیو</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>امتیاز ریسک (۰-۱۰۰)</label>
+          <input type="number" name="risk_score" min="0" max="100" value="0">
+        </div>
+        <div class="form-group">
+          <label>یادداشت</label>
+          <textarea name="notes" rows="2" placeholder="اختیاری"></textarea>
+        </div>
+        <div class="modal-actions">
+          <button type="submit" class="btn btn-accent">ذخیره</button>
+          <button type="button" class="btn btn-ghost" id="modal-cancel">انصراف</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ── Toast Container ───────────────────────────────────────────────── -->
+  <div class="toast-container" id="toast-container"></div>
+
+  <script src="js/api.js" defer></script>
+  <script src="js/app.js" defer></script>
+</body>
+</html>

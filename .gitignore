@@ -1,0 +1,47 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Virtual environment
+.venv/
+venv/
+env/
+
+# Database
+*.db
+
+# Fetched raw config files
+backend/data/raw/
+
+# Backups
+backend/data/backups/
+
+# Logs
+logs/
+*.log
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+Thumbs.db
+Desktop.ini
+.DS_Store
+
+# Distribution
+dist/
+build/
+*.spec
+
+# Environment
+.env
+
+# Coverage
+htmlcov/
+.coverage

@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="fa" dir="rtl">
 <head>
   <meta charset="UTF-8">
@@ -9,7 +9,7 @@
 <body>
   <div class="app-layout">
 
-    <!-- ── Sidebar ────────────────────────────────────────────────────── -->
+    <!-- Sidebar -->
     <aside class="sidebar">
       <div class="brand">
         <h1>ERROR</h1>
@@ -26,7 +26,7 @@
       </ul>
     </aside>
 
-    <!-- ── Main Content ───────────────────────────────────────────────── -->
+    <!-- Main Content -->
     <main class="main-content">
 
       <!-- Dashboard -->
@@ -62,8 +62,10 @@
             <option value="openvpn">OpenVPN</option>
             <option value="vless">VLess</option>
             <option value="vmess">VMess</option>
-            <option value="xray">Xray</option>
             <option value="shadowsocks">Shadowsocks</option>
+            <option value="trojan">Trojan</option>
+            <option value="hysteria2">Hysteria2</option>
+            <option value="tuic">TUIC</option>
           </select>
           <button class="btn btn-ghost" id="servers-refresh" type="button">🔄 بروزرسانی</button>
           <button class="btn btn-accent" id="servers-add" type="button">➕ افزودن</button>
@@ -165,13 +167,12 @@
             <tbody id="logs-tbody"></tbody>
           </table>
         </div>
-        <div id="logs-content"></div>
       </section>
 
     </main>
   </div>
 
-  <!-- ── Profile Modal ─────────────────────────────────────────────────── -->
+  <!-- Profile Modal -->
   <div class="modal-overlay" id="profile-modal">
     <div class="modal">
       <h2 id="modal-title">افزودن پروفایل</h2>
@@ -188,8 +189,10 @@
             <option value="openvpn">OpenVPN</option>
             <option value="vless">VLess</option>
             <option value="vmess">VMess</option>
-            <option value="xray">Xray</option>
             <option value="shadowsocks">Shadowsocks</option>
+            <option value="trojan">Trojan</option>
+            <option value="hysteria2">Hysteria2</option>
+            <option value="tuic">TUIC</option>
           </select>
         </div>
         <div class="form-group">
@@ -233,11 +236,12 @@
     </div>
   </div>
 
-  <!-- ── Toast Container ───────────────────────────────────────────────── -->
+  <!-- Toast Container -->
   <div class="toast-container" id="toast-container"></div>
 
+  <!-- Scripts (Order is important!) -->
   <script src="js/api.js" defer></script>
-  <script src="js/ui-components.js" defer></script>`n<script src="js/app.js" defer></script>
+  <script src="js/ui-components.js" defer></script>
+  <script src="js/app.js" defer></script>
 </body>
 </html>
-

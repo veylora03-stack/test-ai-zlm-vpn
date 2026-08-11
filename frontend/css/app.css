@@ -720,3 +720,354 @@ body::after {
 .badge-log-approve      { background: rgba(34,197,94,0.20); color: #4ade80; }
 .badge-log-block        { background: rgba(239,68,68,0.20); color: #f87171; }
 .badge-log-scan         { background: rgba(249,115,22,0.15); color: #fb923c; }
+
+/* ── Enhanced Toast ──────────────────────────────────────────────────── */
+.toast-container {
+  position: fixed;
+  top: 20px;
+  left: 20px;
+  z-index: 300;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-width: 400px;
+}
+.toast {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 18px;
+  border-radius: 14px;
+  font-size: 0.88rem;
+  font-weight: 500;
+  animation: toastIn 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+  backdrop-filter: blur(12px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+}
+.toast-out {
+  animation: toastOut 0.3s ease forwards;
+}
+.toast-icon {
+  font-size: 1.3rem;
+  font-weight: 700;
+  min-width: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  width: 28px;
+  height: 28px;
+}
+.toast-success { background: rgba(22, 101, 52, 0.95); color: #4ade80; border: 1px solid rgba(34, 197, 94, 0.4); }
+.toast-success .toast-icon { background: rgba(34, 197, 94, 0.3); color: #86efac; }
+.toast-error { background: rgba(127, 29, 29, 0.95); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.4); }
+.toast-error .toast-icon { background: rgba(239, 68, 68, 0.3); color: #fecaca; }
+.toast-warning { background: rgba(120, 53, 15, 0.95); color: #fcd34d; border: 1px solid rgba(245, 158, 11, 0.4); }
+.toast-warning .toast-icon { background: rgba(245, 158, 11, 0.3); color: #fde68a; }
+.toast-info { background: rgba(30, 58, 138, 0.95); color: #93c5fd; border: 1px solid rgba(59, 130, 246, 0.4); }
+.toast-info .toast-icon { background: rgba(59, 130, 246, 0.3); color: #bfdbfe; }
+.toast-text {
+  flex: 1;
+  line-height: 1.4;
+}
+.toast-close {
+  background: transparent;
+  border: none;
+  color: inherit;
+  opacity: 0.6;
+  cursor: pointer;
+  font-size: 1.3rem;
+  padding: 0 4px;
+  transition: opacity 0.2s;
+}
+.toast-close:hover { opacity: 1; }
+.toast-progress {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 3px;
+  background: rgba(255, 255, 255, 0.5);
+  width: 100%;
+  transform-origin: left;
+}
+@keyframes toastProgress {
+  from { transform: scaleX(1); }
+  to { transform: scaleX(0); }
+}
+@keyframes toastIn {
+  from { opacity: 0; transform: translateX(-30px) scale(0.95); }
+  to { opacity: 1; transform: translateX(0) scale(1); }
+}
+@keyframes toastOut {
+  from { opacity: 1; transform: translateX(0) scale(1); }
+  to { opacity: 0; transform: translateX(-30px) scale(0.95); }
+}
+
+/* ── Confirm Modal ──────────────────────────────────────────────────── */
+.confirm-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(3, 5, 11, 0.85);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  z-index: 500;
+  justify-content: center;
+  align-items: center;
+  animation: fadeIn 0.2s ease;
+}
+.confirm-overlay.open {
+  display: flex;
+}
+.confirm-modal {
+  background: linear-gradient(135deg, rgba(30, 27, 46, 0.98), rgba(15, 12, 30, 0.98));
+  border: 1px solid var(--glass-border);
+  border-radius: var(--glass-radius);
+  padding: 32px;
+  width: 90%;
+  max-width: 440px;
+  text-align: center;
+  animation: modalIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+}
+.confirm-icon-wrapper {
+  margin-bottom: 20px;
+}
+.confirm-icon {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.2), rgba(239, 68, 68, 0.2));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  margin: 0 auto;
+  border: 2px solid rgba(245, 158, 11, 0.3);
+  animation: iconPulse 2s infinite;
+}
+.confirm-title {
+  font-size: 1.3rem;
+  font-weight: 700;
+  margin-bottom: 12px;
+  color: var(--text-primary);
+}
+.confirm-message {
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+  line-height: 1.6;
+  margin-bottom: 28px;
+}
+.confirm-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+.confirm-actions .btn {
+  min-width: 110px;
+  padding: 10px 20px;
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes modalIn {
+  from { opacity: 0; transform: scale(0.85) translateY(-20px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+@keyframes iconPulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
+/* ── Skeleton Loaders ───────────────────────────────────────────────── */
+.skeleton {
+  background: linear-gradient(90deg, 
+    rgba(255, 255, 255, 0.05) 0%, 
+    rgba(255, 255, 255, 0.1) 50%, 
+    rgba(255, 255, 255, 0.05) 100%);
+  background-size: 200% 100%;
+  animation: skeletonShimmer 1.5s infinite;
+  border-radius: 6px;
+}
+.skeleton-line {
+  height: 14px;
+  margin: 6px 0;
+}
+.skeleton-title {
+  height: 20px;
+  width: 70%;
+  margin-bottom: 8px;
+}
+.skeleton-value {
+  height: 32px;
+  width: 60%;
+  margin-bottom: 8px;
+}
+.skeleton-label {
+  height: 14px;
+  width: 80%;
+}
+@keyframes skeletonShimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* ── Empty States ───────────────────────────────────────────────────── */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  text-align: center;
+  min-height: 300px;
+}
+.empty-icon {
+  font-size: 4rem;
+  margin-bottom: 20px;
+  opacity: 0.6;
+  animation: float 3s ease-in-out infinite;
+}
+.empty-title {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 8px;
+}
+.empty-message {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  margin-bottom: 24px;
+  max-width: 400px;
+  line-height: 1.6;
+}
+.empty-action {
+  margin-top: 8px;
+}
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+/* ── Loading Button ─────────────────────────────────────────────────── */
+.btn-loading {
+  position: relative;
+  pointer-events: none;
+  opacity: 0.8;
+}
+.spinner {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+}
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ── Offline Banner ─────────────────────────────────────────────────── */
+.offline-banner {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(135deg, #dc2626, #991b1b);
+  color: white;
+  padding: 10px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  z-index: 1000;
+  font-size: 0.88rem;
+  font-weight: 600;
+  transform: translateY(-100%);
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
+}
+.offline-banner.visible {
+  transform: translateY(0);
+}
+.offline-icon {
+  font-size: 1.2rem;
+}
+.offline-retry {
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: white;
+  padding: 4px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.8rem;
+  font-weight: 600;
+  transition: background 0.2s;
+}
+.offline-retry:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* ── Smooth Tab Transitions ─────────────────────────────────────────── */
+.tab-section {
+  display: none;
+  animation: tabFadeIn 0.3s ease;
+}
+.tab-section.active {
+  display: block;
+}
+@keyframes tabFadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Enhanced Button Hover ──────────────────────────────────────────── */
+.btn {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(124, 58, 237, 0.2);
+}
+.btn:active:not(:disabled) {
+  transform: translateY(0);
+}
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ── Keyboard Shortcut Hints ────────────────────────────────────────── */
+.shortcut-hint {
+  display: inline-block;
+  padding: 2px 6px;
+  font-size: 0.7rem;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+  color: var(--text-muted);
+  margin-right: 6px;
+  font-family: 'Courier New', monospace;
+  direction: ltr;
+}
+
+/* ── Enhanced Table Rows ────────────────────────────────────────────── */
+.data-table tbody tr {
+  transition: background 0.2s;
+}
+.data-table tbody tr:hover {
+  background: rgba(124, 58, 237, 0.08);
+}
+
+/* ── Pulse animation for new items ──────────────────────────────────── */
+@keyframes itemPulse {
+  0% { background: rgba(34, 197, 94, 0.2); }
+  100% { background: transparent; }
+}
+.item-new {
+  animation: itemPulse 2s ease-out;
+}

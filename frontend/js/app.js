@@ -1,4 +1,4 @@
-// ERROR-PANEL — App Logic
+﻿// ERROR-PANEL — App Logic
 // Tab router, Dashboard KPIs, Servers CRUD, Sources CRUD, Quarantine, Analytics, Toast, Confirm
 
 'use strict';
@@ -12,19 +12,10 @@ const STATUS_LABELS = {
 };
 
 // ── Toast ───────────────────────────────────────────────────────────────────
-function toast(message, type = 'info') {
-  const container = document.getElementById('toast-container');
-  const el = document.createElement('div');
-  el.className = `toast toast-${type}`;
-  el.textContent = message;
-  container.appendChild(el);
-  setTimeout(() => el.remove(), 3100);
-}
+// Toast now handled by ui-components.js
 
 // ── Confirm wrapper ─────────────────────────────────────────────────────────
-async function confirmAction(message) {
-  return window.confirm(message);
-}
+// Confirm now handled by ui-components.js
 
 // ── Tab Router ──────────────────────────────────────────────────────────────
 function initTabs() {
@@ -215,7 +206,7 @@ async function runTestAction(id) {
 }
 
 function initServersToolbar() {
-  document.getElementById('servers-search').addEventListener('input', debounce(loadServers, 300));
+  document.getElementById('servers-search').addEventListener('input', debounce(loadServers, 200));
   document.getElementById('servers-status-filter').addEventListener('change', loadServers);
   document.getElementById('servers-protocol-filter').addEventListener('change', loadServers);
   document.getElementById('servers-refresh').addEventListener('click', loadServers);
@@ -823,3 +814,4 @@ document.addEventListener('DOMContentLoaded', async () => {
     toast('خطا در اتصال به سرور: ' + err.message, 'error');
   }
 });
+

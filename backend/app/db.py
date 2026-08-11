@@ -55,3 +55,32 @@ async def create_tables():
 
 async def close_db():
     await engine.dispose()
+
+
+async def seed_settings_defaults():
+    """Seed default settings if they don't exist."""
+    from .models import Settings
+    from sqlalchemy import select
+    
+    default_settings = {
+        "ranking_weights": '{"download": 0.35, "upload": 0.20, "ping": 0.20, "stability": 0.15, "security": 0.10}',
+        "test_attempts": "4",
+        "test_timeout": "5.0",
+        "test_concurrency": "5",
+        "auto_refresh_seconds": "30",
+    }
+    
+    async with AsyncSessionLocal() as session:
+        async with session.begin():
+            for key, value in default_settings.items():
+                # Check if setting exists
+                result = await session.execute(
+                    select(Settings).where(Settings.key == key)
+                )
+                existing = result.scalar_one_or_none()
+                
+                if not existing:
+                    # Create default setting
+                    setting = Settings(key=key, value=value)
+                    session.add(setting)
+                    logger.info(f"Created default setting: {key}")

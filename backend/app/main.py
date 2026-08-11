@@ -73,11 +73,22 @@ async def health():
 # Resolves frontend path robustly for both dev and PyInstaller
 from backend.core.paths import BASE_DIR
 
+from pathlib import Path
+import sys
+
+# Smart frontend path calculation
 if getattr(sys, "frozen", False):
+    # PyInstaller: frontend is bundled in _MEIPASS
     _FRONTEND_DIR = Path(sys._MEIPASS) / "frontend"
 else:
-    _FRONTEND_DIR = BASE_DIR / "frontend"
+    # Development: go from backend/app to root/frontend
+    # __file__ = backend/app/main.py
+    # parent = backend/app
+    # parent.parent = backend
+    # parent.parent.parent = ERROR-PANEL (root)
+    _FRONTEND_DIR = Path(__file__).resolve().parent.parent.parent / "frontend"
 
 if _FRONTEND_DIR.is_dir():
     app.mount("/", StaticFiles(directory=str(_FRONTEND_DIR), html=True), name="frontend")
+
 

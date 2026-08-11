@@ -15,9 +15,9 @@ logger.add(
 log_file = DATA_DIR / "error_panel.log"
 logger.add(
     str(log_file),
-    rotation=\"00:00\",
-    retention=\"7 days\",
-    compression=\"zip\",
-    level=\"DEBUG\",
-    encoding=\"utf-8\"
+    rotation="00:00",
+    retention="7 days",
+    compression="zip",
+    level="DEBUG",
+    encoding="utf-8"
 )

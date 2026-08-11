@@ -1,4 +1,4 @@
-"""ERROR-PANEL — FastAPI application entry point.
+﻿"""ERROR-PANEL — FastAPI application entry point.
 
 Lifespan: creates all DB tables on startup, seeds settings defaults.
 Routers: /api/sources, /api/profiles, /api (sync), /api/quarantine,
@@ -71,10 +71,13 @@ async def health():
 
 # Mount frontend as static files AFTER all API routers
 # Resolves frontend path robustly for both dev and PyInstaller
+from backend.core.paths import BASE_DIR
+
 if getattr(sys, "frozen", False):
     _FRONTEND_DIR = Path(sys._MEIPASS) / "frontend"
 else:
-    _FRONTEND_DIR = Path(__file__).resolve().parents[2] / "frontend"
+    _FRONTEND_DIR = BASE_DIR / "frontend"
 
 if _FRONTEND_DIR.is_dir():
     app.mount("/", StaticFiles(directory=str(_FRONTEND_DIR), html=True), name="frontend")
+

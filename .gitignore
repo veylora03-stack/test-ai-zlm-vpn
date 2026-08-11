@@ -1,47 +1,27 @@
-# Python
+﻿# Python
 __pycache__/
 *.py[cod]
-*$py.class
+*.class
 *.so
-
-# Virtual environment
-.venv/
-venv/
+.Python
 env/
-
-# Database
-*.db
-
-# Fetched raw config files
-backend/data/raw/
-
-# Backups
-backend/data/backups/
-
-# Logs
-logs/
-*.log
+venv/
+.venv/
+ENV/
+build/
+dist/
+*.egg-info/
+*.egg
 
 # IDE
 .vscode/
 .idea/
 *.swp
-*.swo
-*~
 
-# OS
-Thumbs.db
-Desktop.ini
-.DS_Store
-
-# Distribution
-dist/
-build/
+# Project Specific
+backend/data/*.db
+backend/data/backups/*.db
+backend/data/raw/*
+*.log
+logs/
 *.spec
-
-# Environment
-.env
-
-# Coverage
-htmlcov/
-.coverage

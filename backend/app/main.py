@@ -22,7 +22,7 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
 from backend.core.logger import logger
 
-from .db import create_tables, seed_settings_defaults
+from .db import create_tables, seed_settings_defaults, close_db
 from .api.sources import router as sources_router
 from .api.profiles import router as profiles_router
 from .api.sync import router as sync_router
@@ -34,10 +34,11 @@ from .api.settings import router as settings_router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Create database tables on startup and seed settings defaults."""
+    """Create database tables on startup, seed settings, and dispose engine on shutdown."""
     await create_tables()
     await seed_settings_defaults()
     yield
+    await close_db()
 
 
 

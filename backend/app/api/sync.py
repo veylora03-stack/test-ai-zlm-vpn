@@ -11,7 +11,7 @@ import os
 from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy import select
+from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..db import get_db
@@ -32,9 +32,9 @@ router = APIRouter(prefix="/api", tags=["sync"])
 @router.post("/sources/{source_id}/sync")
 async def sync_source(source_id: int, db: AsyncSession = Depends(get_db)):
     """Fetch the source URL, save raw content, parse configs, create profiles (with dedup)."""
-    # ── Enforce source limit ──────────────────────────────────────────
-    count_result = await db.execute(select(Source))
-    if len(count_result.scalars().all()) >= MAX_SOURCES:
+    # ── Enforce source limit efficiently ──────────────────────────────
+    count_result = await db.execute(select(func.count(Source.id)))
+    if count_result.scalar() >= MAX_SOURCES:
         raise HTTPException(status_code=429, detail=f"Maximum source limit ({MAX_SOURCES}) reached")
 
     # ── Load source ────────────────────────────────────────────────────

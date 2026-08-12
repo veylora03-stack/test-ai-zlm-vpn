@@ -185,7 +185,7 @@ function renderServersTable(profiles) {
       <td class="actions">
         <button class="btn btn-accent btn-sm" onclick="runTestAction(${p.id})">تست</button>
         <button class="btn btn-ghost btn-sm" onclick="editProfile(${p.id})">ویرایش</button>
-        <button class="btn btn-danger btn-sm" onclick="removeProfile(${p.id}, '${esc(p.name)}')">حذف</button>
+        <button class="btn btn-danger btn-sm" onclick="removeProfile(${p.id}, ${JSON.stringify(p.name)})">حذف</button>
       </td>
     </tr>
   `).join('');

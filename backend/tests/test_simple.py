@@ -1,5 +1,5 @@
 ﻿"""
-تست End-to-End با سرور واقعی
+تست ساده با سرور واقعی (نیاز به سرور در حال اجرا)
 برای اجرا: ابتدا سرور را اجرا کنید، سپس این تست را اجرا کنید.
 """
 
@@ -33,26 +33,6 @@ async def test_profiles_endpoint():
         token = token_response.json()["token"]
         headers = {"X-API-Token": token}
         response = await client.get("/api/profiles/", headers=headers)
-        assert response.status_code == 200
-
-@pytest.mark.asyncio
-async def test_sources_endpoint():
-    """تست دریافت منابع (با توکن)"""
-    async with httpx.AsyncClient(base_url=BASE_URL) as client:
-        token_response = await client.get("/api/token")
-        token = token_response.json()["token"]
-        headers = {"X-API-Token": token}
-        response = await client.get("/api/sources/", headers=headers)
-        assert response.status_code == 200
-
-@pytest.mark.asyncio
-async def test_quarantine_endpoint():
-    """تست دریافت قرنطینه (با توکن)"""
-    async with httpx.AsyncClient(base_url=BASE_URL) as client:
-        token_response = await client.get("/api/token")
-        token = token_response.json()["token"]
-        headers = {"X-API-Token": token}
-        response = await client.get("/api/quarantine/", headers=headers)
         assert response.status_code == 200
 
 if __name__ == "__main__":

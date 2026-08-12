@@ -206,19 +206,87 @@ jobs:
         Write-Host "  Size: $([math]::Round($exeInfo.Length / 1MB, 2)) MB"
         Write-Host "  LastWriteTime: $($exeInfo.LastWriteTime)"
 
-        Write-Host "Running smoke test: checking if EXE can start..."
-        try {
-          $process = Start-Process -FilePath $exePath -PassThru -WindowStyle Hidden
-          Start-Sleep -Seconds 2
-          if (-not $process.HasExited) {
-            Write-Host "Smoke test passed: EXE started successfully."
-            Stop-Process -Id $process.Id -Force -ErrorAction SilentlyContinue
-          } else {
-            Write-Host "Smoke test warning: EXE exited immediately with code: $($process.ExitCode)"
-          }
-        } catch {
-          Write-Host "Smoke test warning: Could not start EXE: $($_.Exception.Message)"
+    - name: Smoke Test EXE (Real Gate)
+      shell: pwsh
+      run: |
+        $exePath = "backend/dist/ERROR-Panel.exe"
+
+        if (-not (Test-Path $exePath)) {
+          Write-Error "EXE not found: $exePath"
+          exit 1
         }
+
+        $stdoutLog = "$env:GITHUB_WORKSPACE\ERROR-Panel.stdout.log"
+        $stderrLog = "$env:GITHUB_WORKSPACE\ERROR-Panel.stderr.log"
+
+        Write-Host "Starting EXE: $exePath"
+        Write-Host "stdout: $stdoutLog"
+        Write-Host "stderr: $stderrLog"
+
+        $process = Start-Process `
+          -FilePath $exePath `
+          -RedirectStandardOutput $stdoutLog `
+          -RedirectStandardError $stderrLog `
+          -PassThru `
+          -WindowStyle Hidden
+
+        Write-Host "EXE started with PID: $($process.Id)"
+        Write-Host "Waiting for EXE to become ready (checking /api/health)..."
+
+        $ready = $false
+
+        for ($i = 1; $i -le 30; $i++) {
+          Start-Sleep -Seconds 1
+
+          if ($process.HasExited) {
+            Write-Host "EXE exited early with code: $($process.ExitCode)"
+            Write-Host "=== EXE STDOUT ==="
+            if (Test-Path $stdoutLog) {
+              Get-Content $stdoutLog
+            } else {
+              Write-Host "stdout log not found"
+            }
+            Write-Host "=== EXE STDERR ==="
+            if (Test-Path $stderrLog) {
+              Get-Content $stderrLog
+            } else {
+              Write-Host "stderr log not found"
+            }
+            exit 1
+          }
+
+          try {
+            $response = Invoke-WebRequest `
+              -Uri "http://127.0.0.1:8000/api/health" `
+              -UseBasicParsing `
+              -TimeoutSec 2
+
+            if ($response.StatusCode -eq 200) {
+              Write-Host "EXE is ready and responding on /api/health!"
+              $ready = $true
+              break
+            }
+          } catch {
+            Write-Host "Waiting for EXE... attempt $i/30"
+          }
+        }
+
+        if (-not $ready) {
+          Write-Host "EXE did not become ready within 30 seconds."
+          Write-Host "=== EXE STDOUT ==="
+          if (Test-Path $stdoutLog) {
+            Get-Content $stdoutLog
+          }
+          Write-Host "=== EXE STDERR ==="
+          if (Test-Path $stderrLog) {
+            Get-Content $stderrLog
+          }
+          exit 1
+        }
+
+        Write-Host "Smoke test PASSED: EXE is running and healthy."
+        Write-Host "Stopping EXE..."
+        Stop-Process -Id $process.Id -Force -ErrorAction SilentlyContinue
 
     - name: Upload EXE Artifact
       uses: actions/upload-artifact@v4

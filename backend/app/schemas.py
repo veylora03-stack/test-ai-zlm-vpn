@@ -1,4 +1,4 @@
-"""ERROR-PANEL — Pydantic v2 request/response schemas.
+﻿"""ERROR-PANEL — Pydantic v2 request/response schemas.
 
 Uses from_attributes=True for ORM model conversion.
 """
@@ -6,7 +6,7 @@ Uses from_attributes=True for ORM model conversion.
 from datetime import datetime
 from typing import Optional, Literal
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, Field, Literal, ConfigDict, Field
 
 
 # ── Sources ──────────────────────────────────────────────────────────────────
@@ -130,9 +130,9 @@ class SecurityScanResponse(BaseModel):
 
 class ManualMetricCreate(BaseModel):
     profile_id: int
-    download_mbps: float
-    upload_mbps: float
-    ping_ms: Optional[float] = None
+    download_mbps: float = Field(ge=0, description="Download speed in Mbps (must be >= 0)")
+    upload_mbps: float = Field(ge=0, description="Upload speed in Mbps (must be >= 0)")
+    ping_ms: Optional[float] = Field(None, ge=0, description="Ping in ms (must be >= 0)")
 
 
 # ── Audit Logs ───────────────────────────────────────────────────────────────
@@ -146,3 +146,4 @@ class AuditLogResponse(BaseModel):
     entity_type: str
     entity_id: int
     details_json: Optional[str] = None
+

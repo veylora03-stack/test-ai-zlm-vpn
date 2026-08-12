@@ -71,13 +71,12 @@ def compute_score(
 
     dl = download_mbps if download_mbps is not None else 0.0
     ul = upload_mbps if upload_mbps is not None else 0.0
-    ping = ping_ms if ping_ms is not None else 0.0
-    loss = packet_loss_pct if packet_loss_pct is not None else 0.0
-    jitter = jitter_ms if jitter_ms is not None else 0.0
+    loss = packet_loss_pct if packet_loss_pct is not None else 100.0
+    jitter = jitter_ms if jitter_ms is not None else 200.0
 
     download_norm = min(dl / 200.0, 1.0)
     upload_norm = min(ul / 100.0, 1.0)
-    ping_norm = max(0.0, 1.0 - ping / 1000.0)
+    ping_norm = max(0.0, 1.0 - (ping_ms / 1000.0)) if ping_ms is not None else 0.0
     stability_norm = max(0.0, 1.0 - loss / 100.0) * (1.0 - min(jitter / 200.0, 1.0))
     security_norm = 1.0 - risk_score / 100.0
 

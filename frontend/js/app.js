@@ -183,7 +183,7 @@ function renderServersTable(profiles) {
       <td><span class="badge badge-${p.status}">${STATUS_LABELS[p.status] || p.status}</span></td>
       <td>${p.risk_score}</td>
       <td class="actions">
-        <button class="btn btn-accent btn-sm" onclick="runTestAction(${p.id})">تست</button>
+        <button class="btn btn-accent btn-sm" data-action="test" data-id="${p.id}">تست</button>
         <button class="btn btn-ghost btn-sm" onclick="editProfile(${p.id})">ویرایش</button>
         <button class="btn btn-danger btn-sm" onclick="removeProfile(${p.id}, ${JSON.stringify(p.name)})">حذف</button>
       </td>

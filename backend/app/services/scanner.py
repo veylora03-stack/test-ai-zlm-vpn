@@ -258,7 +258,8 @@ def _check_http_endpoint(raw_text: str, protocol: str) -> Optional[dict]:
     # Don't flag http:// in comments or documentation
     
     # Check for HTTP URLs in actual config directives (not comments)
-    lines = raw_text.splitlines()
+    cleaned_text = _strip_comments(raw_text, protocol)
+    lines = cleaned_text.splitlines()
     for line in lines:
         line_stripped = line.strip()
         

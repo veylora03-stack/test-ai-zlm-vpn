@@ -107,7 +107,7 @@ async def sync_source(source_id: int, db: AsyncSession = Depends(get_db)):
     if imported_count > 0:
         await db.flush()
 
-    # ── Auto-scan each newly imported profile ──────────────────────────
+        # ── Auto-scan each newly imported profile ──────────────────────────
     # CRITICAL FIX: Query by tracked IDs, not by config_ref path
     for profile_id in new_profile_ids:
         result = await db.execute(
@@ -118,7 +118,7 @@ async def sync_source(source_id: int, db: AsyncSession = Depends(get_db)):
             try:
                 await scan_profile(db, new_profile)
             except Exception as e:
-                logger.warning(f"Scan failed for profile {profile_id}: {e}")
+                pass  # Scan failure should not block sync
 
     # ── Update source on success ───────────────────────────────────────
     source.last_sync_at = datetime.now(timezone.utc)

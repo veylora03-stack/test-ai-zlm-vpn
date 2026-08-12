@@ -4,7 +4,7 @@ Provides an async helper to record actions in the audit_logs table.
 """
 
 import json
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any, Optional
 
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -32,7 +32,7 @@ async def log_action(
         The created AuditLog ORM instance (flushed, not committed).
     """
     entry = AuditLog(
-        created_at=datetime.utcnow(),
+        created_at=datetime.now(timezone.utc),
         action=action,
         entity_type=entity_type,
         entity_id=entity_id,

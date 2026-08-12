@@ -120,17 +120,21 @@ async def top_profiles(
     if not profiles:
         return []
 
+    # Optimized: Get all latest metrics in a single query
+    metric_result = await db.execute(
+        select(Metric).where(
+            Metric.id.in_(
+                select(func.max(Metric.id))
+                .group_by(Metric.profile_id)
+            )
+        )
+    )
+    latest_metrics = {m.profile_id: m for m in metric_result.scalars().all()}
+
     # Build ranking data
     ranked: list[dict] = []
     for p in profiles:
-        # Get latest metric
-        metric_result = await db.execute(
-            select(Metric)
-            .where(Metric.profile_id == p.id)
-            .order_by(Metric.id.desc())
-            .limit(1)
-        )
-        latest_metric = metric_result.scalar_one_or_none()
+        latest_metric = latest_metrics.get(p.id)
 
         dl = latest_metric.download_mbps if latest_metric else None
         ul = latest_metric.upload_mbps if latest_metric else None

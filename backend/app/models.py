@@ -5,6 +5,8 @@ Relationships: source.profiles, profile.metrics, profile.security_scans
 """
 
 from datetime import datetime
+from enum import Enum
+
 
 from sqlalchemy import (
     Column,
@@ -21,12 +23,56 @@ from sqlalchemy.orm import relationship
 from .db import Base
 
 
+
+class ProtocolEnum(str, Enum):
+    wireguard = "wireguard"
+    openvpn = "openvpn"
+    vless = "vless"
+    vmess = "vmess"
+    xray = "xray"
+    shadowsocks = "shadowsocks"
+    trojan = "trojan"
+    hysteria2 = "hysteria2"
+    tuic = "tuic"
+
+
+class ProfileStatus(str, Enum):
+    new = "new"
+    quarantined = "quarantined"
+    pending_review = "pending_review"
+    approved = "approved"
+    tested = "tested"
+    failed = "failed"
+    blocked = "blocked"
+    archived = "archived"
+
+
+class SourceStatus(str, Enum):
+    pending_review = "pending_review"
+    active = "active"
+    paused = "paused"
+    suspicious = "suspicious"
+    blocked = "blocked"
+
+
+class RiskLevel(str, Enum):
+    low = "low"
+    medium = "medium"
+    high = "high"
+    critical = "critical"
+
+
+class Recommendation(str, Enum):
+    approve = "approve"
+    review = "review"
+    block = "block"
+
 class Source(Base):
     __tablename__ = "sources"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     name = Column(Text, nullable=False)
-    type = Column(Text, nullable=False)  # github | url | manual
+    type = Column(Text, nullable=False)  # github | url | manual  # TODO: Use SourceStatus Enum
     url = Column(Text, nullable=True)
     status = Column(Text, nullable=False, default="pending_review")
     # pending_review | active | paused | suspicious | blocked
@@ -47,12 +93,12 @@ class Profile(Base):
     id = Column(Integer, primary_key=True, autoincrement=True)
     source_id = Column(Integer, ForeignKey("sources.id"), nullable=True)
     name = Column(Text, nullable=False)
-    protocol = Column(Text, nullable=False)
+    protocol = Column(Text, nullable=False)  # TODO: Use ProtocolEnum
     # wireguard | openvpn | vless | vmess | shadowsocks | trojan | hysteria2 | tuic
     server_host = Column(Text, nullable=True)
     server_port = Column(Integer, nullable=True)
     country_code = Column(Text, nullable=True)  # ISO 3166-1 alpha-2
-    status = Column(Text, nullable=False, default="new")
+    status = Column(Text, nullable=False, default="new")  # TODO: Use ProfileStatus
     # new | quarantined | pending_review | approved | tested | failed | blocked | archived
     risk_score = Column(Integer, nullable=False, default=0)
     duplicate_of = Column(Integer, ForeignKey("profiles.id"), nullable=True)

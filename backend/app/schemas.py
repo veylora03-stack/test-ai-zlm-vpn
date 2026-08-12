@@ -4,7 +4,7 @@ Uses from_attributes=True for ORM model conversion.
 """
 
 from datetime import datetime
-from typing import Optional
+from typing import Optional, Literal
 
 from pydantic import BaseModel, ConfigDict
 
@@ -13,9 +13,9 @@ from pydantic import BaseModel, ConfigDict
 
 class SourceCreate(BaseModel):
     name: str
-    type: str  # github | url | manual
+    type: Literal['github', 'url', 'manual']
     url: Optional[str] = None
-    status: str = "pending_review"
+    status: Literal['pending_review', 'active', 'paused', 'suspicious', 'blocked'] = 'pending_review'
     reputation_score: int = 50
     notes: Optional[str] = None
 
@@ -55,7 +55,7 @@ class ProfileCreate(BaseModel):
     server_host: Optional[str] = None
     server_port: Optional[int] = None
     country_code: Optional[str] = None
-    status: str = "new"
+    status: Literal['new', 'quarantined', 'pending_review', 'approved', 'tested', 'failed', 'blocked', 'archived'] = 'new'
     risk_score: int = 0
     duplicate_of: Optional[int] = None
     config_ref: Optional[str] = None

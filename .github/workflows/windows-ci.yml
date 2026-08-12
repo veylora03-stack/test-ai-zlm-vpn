@@ -36,16 +36,16 @@ jobs:
 
     - name: Start FastAPI server for E2E tests
       run: |
-        cd backend
         $stdoutLog = "$env:GITHUB_WORKSPACE\uvicorn.stdout.log"
         $stderrLog = "$env:GITHUB_WORKSPACE\uvicorn.stderr.log"
 
-        Write-Host "Starting Uvicorn with stdout: $stdoutLog"
-        Write-Host "Starting Uvicorn with stderr: $stderrLog"
+        Write-Host "Starting Uvicorn from repository root with module: backend.app.main:app"
+        Write-Host "stdout: $stdoutLog"
+        Write-Host "stderr: $stderrLog"
 
         $process = Start-Process `
           -FilePath "python" `
-          -ArgumentList "-m", "uvicorn", "app.main:app", "--host", "127.0.0.1", "--port", "8000", "--log-level", "info" `
+          -ArgumentList "-m", "uvicorn", "backend.app.main:app", "--host", "127.0.0.1", "--port", "8000", "--log-level", "info" `
           -RedirectStandardOutput $stdoutLog `
           -RedirectStandardError $stderrLog `
           -PassThru `

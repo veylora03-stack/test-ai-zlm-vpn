@@ -15,6 +15,7 @@ from ..db import get_db
 from ..models import Metric, Profile
 from ..schemas import ManualMetricCreate, MetricResponse
 from ..services.audit import log_action
+from ..services.scanner import _is_private_ip
 from ..services.tester import test_profile
 
 router = APIRouter(prefix="/api", tags=["tests", "metrics"])

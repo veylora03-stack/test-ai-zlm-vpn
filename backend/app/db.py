@@ -42,6 +42,7 @@ async def get_db():
     async with AsyncSessionLocal() as session:
         try:
             yield session
+            await session.commit()
         except Exception as e:
             logger.error(f"Database session error: {e}")
             await session.rollback()
@@ -84,3 +85,5 @@ async def seed_settings_defaults():
                     setting = Settings(key=key, value=value)
                     session.add(setting)
                     logger.info(f"Created default setting: {key}")
+
+

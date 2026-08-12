@@ -6,3 +6,6 @@ loguru==0.7.2
 pyinstaller==6.7.0
 cryptography==42.0.7
 python-multipart==0.0.9
+SQLAlchemy==2.0.30
+aiosqlite==0.20.0
+

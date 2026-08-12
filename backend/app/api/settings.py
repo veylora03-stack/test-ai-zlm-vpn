@@ -1,4 +1,4 @@
-"""ERROR-PANEL — API: Settings & Logs.
+﻿"""ERROR-PANEL — API: Settings & Logs.
 
 GET  /api/settings           — return all settings as one dict
 PATCH /api/settings          — partial update with validation
@@ -141,19 +141,19 @@ async def get_logs(
 @router.post("/backup")
 async def create_backup(db: AsyncSession = Depends(get_db)):
     """Copy the SQLite database file into backend/data/backups/."""
-    from ..db import _DB_PATH
+    from backend.core.paths import DB_PATH
 
-    backup_dir = os.path.join(os.path.dirname(_DB_PATH), "backups")
+    backup_dir = os.path.join(os.path.dirname(DB_PATH), "backups")
     os.makedirs(backup_dir, exist_ok=True)
 
     timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
     backup_name = f"error_{timestamp}.db"
     backup_path = os.path.join(backup_dir, backup_name)
 
-    if not os.path.exists(_DB_PATH):
+    if not os.path.exists(DB_PATH):
         raise HTTPException(status_code=500, detail="Database file not found")
 
-    shutil.copy2(_DB_PATH, backup_path)
+    shutil.copy2(DB_PATH, backup_path)
 
     await log_action(db, "backup", "system", 0, {"path": backup_path})
 
@@ -240,3 +240,4 @@ async def export_data(
 
     else:
         raise HTTPException(status_code=400, detail="format must be json or csv")
+

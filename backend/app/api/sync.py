@@ -21,12 +21,10 @@ from ..services.dedup import fingerprint, find_duplicate
 from ..services.fetcher import FetchError, SchemeError, SizeError, fetch_source
 from ..services.parser import parse_config
 from ..services.scanner import scan_profile
+from backend.core.paths import RAW_DIR
 
 router = APIRouter(prefix="/api", tags=["sync"])
 
-# Raw config storage directory
-_BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-RAW_DIR = os.path.join(_BASE_DIR, "data", "raw")
 
 
 @router.post("/sources/{source_id}/sync")
@@ -92,7 +90,7 @@ async def sync_source(source_id: int, db: AsyncSession = Depends(get_db)):
             country_code=cfg.get("country_code"),
             status="quarantined",
             fingerprint=fp,
-            config_ref=raw_path,
+            config_ref=raw_filename,
             notes=cfg.get("notes"),
         )
         db.add(profile)

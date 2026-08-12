@@ -2,7 +2,8 @@
 Shared test fixtures for ERROR-PANEL.
 """
 import pytest
-from unittest.mock import MagicMock
+import asyncio
+from unittest.mock import MagicMock, AsyncMock
 
 @pytest.fixture
 def mock_profile():
@@ -40,3 +41,13 @@ auth SHA256
 remote-cert-tls server
 auth-user-pass
 """
+
+@pytest.fixture
+def mock_db_session():
+    """Mock AsyncSession for testing async DB functions without a real database."""
+    session = AsyncMock()
+    # Mock the execute chain: session.execute().scalars().all() / .scalar_one_or_none()
+    session.execute.return_value.scalars.return_value.all.return_value = []
+    session.execute.return_value.scalar_one_or_none.return_value = None
+    session.execute.return_value.scalar.return_value = 0
+    return session

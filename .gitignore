@@ -25,3 +25,8 @@ backend/data/raw/*
 *.log
 logs/
 *.spec
+
+# Test artifacts
+.coverage
+htmlcov/
+coverage.xml

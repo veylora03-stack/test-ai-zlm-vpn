@@ -6,7 +6,7 @@ import os
 # Add parent directory to path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from app.services.parser import (
+from backend.app.services.parser import (
     parse_config,
     _parse_vless,
     _parse_vmess,
@@ -100,3 +100,4 @@ if __name__ == "__main__":
         import traceback
         traceback.print_exc()
         sys.exit(1)
+

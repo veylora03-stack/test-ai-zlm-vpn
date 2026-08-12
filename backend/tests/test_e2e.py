@@ -1,4 +1,7 @@
-﻿"""
+﻿import sys
+import os
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+"""
 تست End-to-End با سرور واقعی
 برای اجرا: ابتدا سرور را اجرا کنید، سپس این تست را اجرا کنید.
 """
@@ -57,3 +60,4 @@ async def test_quarantine_endpoint():
 
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])
+

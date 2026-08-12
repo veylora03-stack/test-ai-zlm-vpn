@@ -175,7 +175,7 @@ jobs:
     - name: Build EXE with PyInstaller (with backend package support)
       shell: pwsh
       run: |
-        Write-Host "Building EXE from backend/app/main.py..."
+        Write-Host "Building EXE from backend/launcher.py..."
         Write-Host "Using --paths . to include project root for backend package"
         Write-Host "Using --hidden-import to explicitly include backend modules"
 
@@ -190,7 +190,7 @@ jobs:
           --hidden-import backend.services `
           --hidden-import backend.api `
           --hidden-import backend.middleware `
-          backend/app/main.py
+          backend/launcher.py
 
         if ($LASTEXITCODE -ne 0) {
           Write-Error "PyInstaller build failed!"

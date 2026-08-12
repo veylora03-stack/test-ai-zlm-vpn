@@ -31,7 +31,6 @@ jobs:
 
     - name: Run Unit/Integration tests (no server needed)
       run: |
-        cd backend
         pytest tests/unit/test_parser.py tests/unit/test_simple.py --maxfail=1 --disable-warnings -v
 
     - name: Start FastAPI server for E2E tests
@@ -43,7 +42,6 @@ jobs:
 
     - name: Run E2E tests
       run: |
-        cd backend
         pytest tests/e2e/test_e2e.py --maxfail=1 --disable-warnings -v
 
     - name: Check Frontend Syntax

@@ -67,5 +67,5 @@ jobs:
       - name: Run E2E tests
         run: |
           cd backend
-          pytest tests/unit tests/e2etest_e2e.py -v
+          pytest tests/e2e/test_e2e.py -v
 

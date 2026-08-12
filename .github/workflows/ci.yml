@@ -1,4 +1,4 @@
-﻿name: CI/CD Pipeline
+name: CI/CD Pipeline
 on:
   push:
     branches: [ main ]
@@ -26,7 +26,7 @@ jobs:
       - name: Run pip-audit
         run: |
           cd backend
-          pip-audit --desc || exit 0
+          pip-audit --desc
       - name: Run tests
         run: pytest -v --cov=backend --cov-report=xml
       - uses: codecov/codecov-action@v4
@@ -67,5 +67,5 @@ jobs:
       - name: Run E2E tests
         run: |
           cd backend
-          pytest tests/test_e2e.py -v
+          pytest tests/unit tests/e2etest_e2e.py -v
 

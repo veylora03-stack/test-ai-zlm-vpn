@@ -1,4 +1,4 @@
-﻿"""ERROR-PANEL — Enhanced Security Scanner.
+"""ERROR-PANEL — Enhanced Security Scanner.
 
 Static security scanner with protocol-specific checks and reduced false-positives.
 Optimized regex patterns for better accuracy.

@@ -1,4 +1,4 @@
-﻿"""ERROR-PANEL — API: Settings & Logs.
+"""ERROR-PANEL — API: Settings & Logs.
 
 GET  /api/settings           — return all settings as one dict
 PATCH /api/settings          — partial update with validation

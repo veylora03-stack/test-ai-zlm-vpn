@@ -1,4 +1,4 @@
-"""
+﻿"""
 ERROR-PANEL — FastAPI application entry point.
 Lifespan: creates all DB tables on startup, disposes engine on shutdown.
 Routers: /api/sources, /api/profiles, /api (sync), /api/quarantine,
@@ -21,6 +21,7 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
 
 from backend.core.logger import logger
+from backend.middleware.auth import APITokenMiddleware
 from .db import create_tables, seed_settings_defaults, close_db
 from .api.sources import router as sources_router
 from .api.profiles import router as profiles_router
@@ -103,6 +104,15 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
 app.add_middleware(RateLimitMiddleware)
 app.add_middleware(RequestLoggingMiddleware)
 
+
+# ── Token endpoint for frontend ──────────────────────────────────
+from backend.middleware.auth import API_TOKEN
+
+@app.get("/api/token")
+async def get_token():
+    """Endpoint عمومی برای دریافت توکن (فقط برای فرانت‌اند محلی)"""
+    return {"token": API_TOKEN}
+
 # ── Mount API routers FIRST (so /api/* takes priority) ────────
 app.include_router(sources_router)
 app.include_router(profiles_router)
@@ -131,3 +141,4 @@ else:
 
 if _FRONTEND_DIR.is_dir():
     app.mount("/", StaticFiles(directory=str(_FRONTEND_DIR), html=True), name="frontend")
+

@@ -1,12 +1,32 @@
-// ERROR-PANEL — API Client
+﻿// ERROR-PANEL — API Client
 // Fetch wrapper for backend at http://127.0.0.1:8000/api
 
 const API_BASE = 'http://127.0.0.1:8000/api';
 
 async function apiRequest(method, path, body) {
-  const opts = {
-    method,
-    headers: { 'Content-Type': 'application/json' },
+    const token = await getToken();
+    const opts = {
+        method,
+        headers: {
+            'Content-Type': 'application/json',
+            'X-API-Token': token
+        },
+    };
+    if (body !== undefined) {
+        opts.body = JSON.stringify(body);
+    }
+    const res = await fetch(API_BASE + path, opts);
+    if (!res.ok) {
+        let msg = HTTP ;
+        try {
+            const err = await res.json();
+            msg = err.detail || msg;
+        } catch (_) { /* ignore parse error */ }
+        throw new Error(msg);
+    }
+    if (res.status === 204) return null;
+    return res.json();
+},
   };
   if (body !== undefined) {
     opts.body = JSON.stringify(body);
@@ -153,3 +173,4 @@ async function exportData(format = 'json') {
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   return res;
 }
+

@@ -15,6 +15,9 @@ from pathlib import Path
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
+from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.requests import Request
+from backend.core.logger import logger
 
 from .db import create_tables, seed_settings_defaults
 from .api.sources import router as sources_router
@@ -34,6 +37,13 @@ async def lifespan(app: FastAPI):
     yield
 
 
+
+class RequestLoggingMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: Request, call_next):
+        response = await call_next(request)
+        logger.info(f"{request.method} {request.url.path} - {response.status_code}")
+        return response
+
 app = FastAPI(
     title="ERROR-PANEL",
     version="1.0.0",
@@ -50,6 +60,7 @@ app.add_middleware(
 )
 
 # Mount API routers FIRST (so /api/* takes priority)
+app.add_middleware(RequestLoggingMiddleware)
 app.include_router(sources_router)
 app.include_router(profiles_router)
 app.include_router(sync_router)

@@ -7,7 +7,7 @@ PATCH  /api/sources/{id}   — update source
 DELETE /api/sources/{id}   — delete source
 """
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -15,6 +15,8 @@ from ..db import get_db
 from ..models import Source
 from ..schemas import SourceCreate, SourceResponse, SourceUpdate
 from ..services.audit import log_action
+
+MAX_SOURCES = 100
 
 router = APIRouter(prefix="/api/sources", tags=["sources"])
 
@@ -27,6 +29,10 @@ async def list_sources(db: AsyncSession = Depends(get_db)):
 
 @router.post("/", response_model=SourceResponse, status_code=201)
 async def create_source(body: SourceCreate, db: AsyncSession = Depends(get_db)):
+    # Enforce source limit
+    count_result = await db.execute(select(Source))
+    if len(count_result.scalars().all()) >= MAX_SOURCES:
+        raise HTTPException(status_code=429, detail=f"Maximum source limit ({MAX_SOURCES}) reached")
     source = Source(**body.model_dump())
     db.add(source)
     await db.flush()

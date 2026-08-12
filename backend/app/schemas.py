@@ -6,7 +6,7 @@ Uses from_attributes=True for ORM model conversion.
 from datetime import datetime
 from typing import Optional, Literal
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 
 # ── Sources ──────────────────────────────────────────────────────────────────
@@ -52,8 +52,8 @@ class ProfileCreate(BaseModel):
     name: str
     protocol: str
     # wireguard | openvpn | vless | vmess | xray | shadowsocks | trojan
-    server_host: Optional[str] = None
-    server_port: Optional[int] = None
+    server_host: Optional[str] = Field(None, max_length=255, description="Server hostname or IP")
+    server_port: Optional[int] = Field(None, ge=1, le=65535, description="Port must be 1-65535")
     country_code: Optional[str] = None
     status: Literal['new', 'quarantined', 'pending_review', 'approved', 'tested', 'failed', 'blocked', 'archived'] = 'new'
     risk_score: int = 0
@@ -66,8 +66,8 @@ class ProfileUpdate(BaseModel):
     source_id: Optional[int] = None
     name: Optional[str] = None
     protocol: Optional[str] = None
-    server_host: Optional[str] = None
-    server_port: Optional[int] = None
+    server_host: Optional[str] = Field(None, max_length=255, description="Server hostname or IP")
+    server_port: Optional[int] = Field(None, ge=1, le=65535, description="Port must be 1-65535")
     country_code: Optional[str] = None
     status: Optional[str] = None
     risk_score: Optional[int] = None
@@ -83,8 +83,8 @@ class ProfileResponse(BaseModel):
     source_id: Optional[int] = None
     name: str
     protocol: str
-    server_host: Optional[str] = None
-    server_port: Optional[int] = None
+    server_host: Optional[str] = Field(None, max_length=255, description="Server hostname or IP")
+    server_port: Optional[int] = Field(None, ge=1, le=65535, description="Port must be 1-65535")
     country_code: Optional[str] = None
     status: str
     risk_score: int

@@ -23,6 +23,8 @@ from ..services.parser import parse_config
 from ..services.scanner import scan_profile
 from backend.core.paths import RAW_DIR
 
+MAX_SOURCES = 100
+
 router = APIRouter(prefix="/api", tags=["sync"])
 
 
@@ -30,6 +32,11 @@ router = APIRouter(prefix="/api", tags=["sync"])
 @router.post("/sources/{source_id}/sync")
 async def sync_source(source_id: int, db: AsyncSession = Depends(get_db)):
     """Fetch the source URL, save raw content, parse configs, create profiles (with dedup)."""
+    # ── Enforce source limit ──────────────────────────────────────────
+    count_result = await db.execute(select(Source))
+    if len(count_result.scalars().all()) >= MAX_SOURCES:
+        raise HTTPException(status_code=429, detail=f"Maximum source limit ({MAX_SOURCES}) reached")
+
     # ── Load source ────────────────────────────────────────────────────
     result = await db.execute(select(Source).where(Source.id == source_id))
     source = result.scalar_one_or_none()

@@ -175,6 +175,30 @@ def _check_no_tls_verify(raw_text: str, protocol: str) -> Optional[dict]:
     
     return None
 
+
+def _check_weak_tls_version(raw_text: str, protocol: str) -> Optional[dict]:
+    """Weight 15: Weak TLS version in OpenVPN."""
+    if protocol != "openvpn":
+        return None
+    if re.search(r'^\s*tls-version-min\s+1\.0', raw_text, re.IGNORECASE | re.MULTILINE):
+        return {"code": "weak_tls_version", "weight": 15,
+                "message": "OpenVPN tls-version-min is set to 1.0 (weak)"}
+    if re.search(r'^\s*tls-version-min\s+1\.1', raw_text, re.IGNORECASE | re.MULTILINE):
+        return {"code": "weak_tls_version", "weight": 15,
+                "message": "OpenVPN tls-version-min is set to 1.1 (weak)"}
+    return None
+
+def _check_missing_tls_auth(raw_text: str, protocol: str) -> Optional[dict]:
+    """Weight 10: Missing tls-auth or tls-crypt in OpenVPN (DoS risk)."""
+    if protocol != "openvpn":
+        return None
+    has_tls_auth = bool(re.search(r'^\s*tls-auth\s', raw_text, re.MULTILINE))
+    has_tls_crypt = bool(re.search(r'^\s*tls-crypt\s', raw_text, re.MULTILINE))
+    if not has_tls_auth and not has_tls_crypt:
+        return {"code": "missing_tls_auth", "weight": 10,
+                "message": "OpenVPN config missing tls-auth or tls-crypt (vulnerable to DoS)"}
+    return None
+
 def _check_weak_cipher(raw_text: str, protocol: str) -> Optional[dict]:
     """Weight 15: Weak cryptographic cipher/method."""
     if protocol not in ["openvpn", "shadowsocks"]:
@@ -297,6 +321,8 @@ async def scan_profile(db: AsyncSession, profile: Profile) -> dict:
         _check_exec_directives(raw_text, protocol),
         _check_allow_insecure(raw_text, protocol),
         _check_no_tls_verify(raw_text, protocol),
+    _check_weak_tls_version(raw_text, protocol),
+    _check_missing_tls_auth(raw_text, protocol),
         _check_weak_cipher(raw_text, protocol),
         _check_http_endpoint(raw_text, protocol),
         _check_localhost_or_private(profile),

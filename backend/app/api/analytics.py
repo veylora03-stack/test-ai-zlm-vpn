@@ -90,3 +90,14 @@ async def get_analytics_overview(db: AsyncSession = Depends(get_db)):
         "avg_risk": avg_risk,
         "ping_trend": ping_trend,
     }
+
+@router.get("/analytics/geo")
+async def get_analytics_geo(db: AsyncSession = Depends(get_db)):
+    """Return profile counts grouped by country code."""
+    result = await db.execute(
+        select(Profile.country_code, func.count(Profile.id))
+        .where(Profile.country_code.isnot(None))
+        .group_by(Profile.country_code)
+        .order_by(func.count(Profile.id).desc())
+    )
+    return [{"country_code": row[0], "count": row[1]} for row in result.all()]

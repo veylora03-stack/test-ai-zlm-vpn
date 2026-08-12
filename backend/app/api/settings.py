@@ -25,6 +25,7 @@ from ..db import get_db
 from ..models import AuditLog, Metric, Profile, Settings, Source
 from ..schemas import AuditLogResponse
 from ..services.audit import log_action
+from ..services.crypto import encrypt_data
 
 router = APIRouter(prefix="/api", tags=["settings", "logs", "backup", "export"])
 

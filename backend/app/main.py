@@ -9,10 +9,13 @@ Static: frontend served at "/" after all API routers.
 """
 
 import sys
+import time
+from collections import defaultdict
 from contextlib import asynccontextmanager
 from pathlib import Path
 
 from fastapi import FastAPI
+from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from starlette.middleware.base import BaseHTTPMiddleware
@@ -44,6 +47,32 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
         logger.info(f"{request.method} {request.url.path} - {response.status_code}")
         return response
 
+
+class RateLimitMiddleware(BaseHTTPMiddleware):
+    """Simple in-memory rate limiter: 100 requests per minute per IP."""
+    def __init__(self, app, max_requests=100, window_seconds=60):
+        super().__init__(app)
+        self.max_requests = max_requests
+        self.window = window_seconds
+        self.requests = defaultdict(list)
+
+    async def dispatch(self, request: Request, call_next):
+        # Skip rate limiting for static files
+        if not request.url.path.startswith("/api"):
+            return await call_next(request)
+            
+        client_ip = request.client.host if request.client else "unknown"
+        now = time.time()
+        
+        # Clean old requests
+        self.requests[client_ip] = [t for t in self.requests[client_ip] if now - t < self.window]
+        
+        if len(self.requests[client_ip]) >= self.max_requests:
+            return JSONResponse(status_code=429, content={"detail": "Rate limit exceeded. Try again later."})
+            
+        self.requests[client_ip].append(now)
+        return await call_next(request)
+
 app = FastAPI(
     title="ERROR-PANEL",
     version="1.0.0",
@@ -61,6 +90,7 @@ app.add_middleware(
 
 # Mount API routers FIRST (so /api/* takes priority)
 app.add_middleware(RequestLoggingMiddleware)
+app.add_middleware(RateLimitMiddleware)
 app.include_router(sources_router)
 app.include_router(profiles_router)
 app.include_router(sync_router)
@@ -86,6 +116,8 @@ from backend.core.paths import BASE_DIR
 
 from pathlib import Path
 import sys
+import time
+from collections import defaultdict
 
 # Smart frontend path calculation
 if getattr(sys, "frozen", False):

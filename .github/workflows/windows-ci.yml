@@ -176,7 +176,13 @@ jobs:
       shell: pwsh
       run: |
         Write-Host "Building EXE from backend/app/main.py..."
-        pyinstaller --onefile --name ERROR-Panel backend/app/main.py
+        Write-Host "Output directory: backend/dist/"
+
+        pyinstaller `
+          --onefile `
+          --name ERROR-Panel `
+          --distpath backend/dist `
+          backend/app/main.py
 
         if ($LASTEXITCODE -ne 0) {
           Write-Error "PyInstaller build failed!"
@@ -185,11 +191,12 @@ jobs:
 
         Write-Host "PyInstaller build completed successfully."
 
-        $exePath = "dist/ERROR-Panel.exe"
+        $exePath = "backend/dist/ERROR-Panel.exe"
 
         if (-not (Test-Path $exePath)) {
-          Write-Error "EXE was not generated: $exePath"
-          Get-ChildItem -Path "dist" -Recurse -ErrorAction SilentlyContinue
+          Write-Error "EXE was not generated at: $exePath"
+          Write-Host "Searching for ERROR-Panel.exe in repository..."
+          Get-ChildItem -Path . -Filter "ERROR-Panel.exe" -File -Recurse
           exit 1
         }
 
@@ -217,4 +224,4 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: ERROR-Panel-Windows
-        path: dist/ERROR-Panel.exe
+        path: backend/dist/ERROR-Panel.exe

@@ -36,9 +36,9 @@ jobs:
 
     - name: Verify Python package structure
       run: |
-        python -c "import backend; print('✅ backend package found at:', backend.__file__)"
-        python -c "from backend.core.logger import logger; print('✅ Logger import OK')"
-        python -c "from backend.app.main import app; print('✅ Application import OK')"
+        python -c "import backend; print('OK: backend package found at:', backend.__file__)"
+        python -c "from backend.core.logger import logger; print('OK: logger import successful')"
+        python -c "from backend.app.main import app; print('OK: application import successful')"
 
     - name: Start FastAPI server for E2E tests
       run: |

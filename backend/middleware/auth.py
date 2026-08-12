@@ -19,3 +19,5 @@ class APITokenMiddleware(BaseHTTPMiddleware):
         if not token or token != API_TOKEN:
             return JSONResponse(status_code=401, content={"detail": "Unauthorized: Invalid or missing API Token"})
         return await call_next(request)
+
+

@@ -18,11 +18,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 from starlette.middleware.base import BaseHTTPMiddleware
-from starlette.requests import Request
-
 from backend.core.logger import logger
 from backend.middleware.auth import APITokenMiddleware, API_TOKEN
-from backend.middleware.auth import APITokenMiddleware
 from .db import create_tables, seed_settings_defaults, close_db
 from .api.sources import router as sources_router
 from .api.profiles import router as profiles_router
@@ -110,8 +107,6 @@ app.add_middleware(APITokenMiddleware)
 
 
 # ── Token endpoint for frontend ──────────────────────────────────
-from backend.middleware.auth import API_TOKEN
-
 # ── Token endpoint (only accessible from localhost) ──────────────────────
 @app.get("/api/token")
 async def get_token(request: Request):
@@ -148,6 +143,7 @@ else:
 
 if _FRONTEND_DIR.is_dir():
     app.mount("/", StaticFiles(directory=str(_FRONTEND_DIR), html=True), name="frontend")
+
 
 
 

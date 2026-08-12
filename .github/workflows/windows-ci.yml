@@ -189,7 +189,7 @@ jobs:
           --hidden-import backend.app `
           --hidden-import backend.services `
           --hidden-import backend.api `
-          --hidden-import backend.middleware `
+          --hidden-import backend.middleware ` --hidden-import aiosqlite `
           backend/launcher.py
 
         if ($LASTEXITCODE -ne 0) {

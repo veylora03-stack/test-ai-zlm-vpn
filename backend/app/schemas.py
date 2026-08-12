@@ -1,4 +1,4 @@
-﻿"""ERROR-PANEL — Pydantic v2 request/response schemas.
+"""ERROR-PANEL — Pydantic v2 request/response schemas.
 
 Uses from_attributes=True for ORM model conversion.
 """
@@ -6,7 +6,8 @@ Uses from_attributes=True for ORM model conversion.
 from datetime import datetime
 from typing import Optional, Literal
 
-from pydantic import BaseModel, Field, Literal, ConfigDict, Field
+from typing import Literal
+from pydantic import BaseModel, Field, ConfigDict
 
 
 # ── Sources ──────────────────────────────────────────────────────────────────

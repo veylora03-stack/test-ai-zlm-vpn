@@ -9,6 +9,29 @@ from backend.app.services.scanner import (
     _check_weak_cipher
 )
 
+
+@pytest.fixture
+def mock_raw_text():
+    """Mock raw OpenVPN config text for testing TLS verification detection.
+
+    This config represents a valid OpenVPN client configuration that
+    is missing CA certificate verification (tls-verify/ca directives).
+    The scanner should detect this as a security issue.
+    """
+    return """
+client
+dev tun
+proto udp
+remote vpn.example.com 1194
+resolv-retry infinite
+nobind
+persist-key
+persist-tun
+remote-cert-tls server
+cipher AES-256-GCM
+verb 3
+"""
+
 class TestOpenVPNScanner:
     """Tests specific to OpenVPN security checks."""
 

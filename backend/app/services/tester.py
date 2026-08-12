@@ -1,4 +1,4 @@
-﻿from core.globals import get_tester_semaphore
+﻿from backend.core.globals import get_tester_semaphore
 """ERROR-PANEL — Network Tester Service.
 
 TCP connect latency test for VPN profiles.
@@ -170,5 +170,6 @@ async def test_profile(
         "reachable": reachable,
         "error": error,
     }
+
 
 

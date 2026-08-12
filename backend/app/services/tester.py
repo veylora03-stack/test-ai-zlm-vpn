@@ -1,3 +1,4 @@
+﻿from core.globals import get_tester_semaphore
 """ERROR-PANEL — Network Tester Service.
 
 TCP connect latency test for VPN profiles.
@@ -108,7 +109,7 @@ async def test_profile(
             "error": "Missing host or port",
         }
 
-    semaphore = asyncio.Semaphore(concurrency)
+    semaphore = get_tester_get_tester_semaphore(concurrency)
 
     async with semaphore:
         latencies: list[float] = []
@@ -169,3 +170,4 @@ async def test_profile(
         "reachable": reachable,
         "error": error,
     }
+

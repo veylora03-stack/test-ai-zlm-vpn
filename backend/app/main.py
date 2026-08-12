@@ -13,7 +13,7 @@ from collections import defaultdict
 from contextlib import asynccontextmanager
 from pathlib import Path
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
@@ -21,6 +21,7 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
 
 from backend.core.logger import logger
+from backend.middleware.auth import APITokenMiddleware, API_TOKEN
 from backend.middleware.auth import APITokenMiddleware
 from .db import create_tables, seed_settings_defaults, close_db
 from .api.sources import router as sources_router
@@ -108,9 +109,12 @@ app.add_middleware(RequestLoggingMiddleware)
 # ── Token endpoint for frontend ──────────────────────────────────
 from backend.middleware.auth import API_TOKEN
 
+# ── Token endpoint (only accessible from localhost) ──────────────────────
 @app.get("/api/token")
-async def get_token():
-    """Endpoint عمومی برای دریافت توکن (فقط برای فرانت‌اند محلی)"""
+async def get_token(request: Request):
+    client_host = request.client.host if request.client else "unknown"
+    if client_host not in ["127.0.0.1", "::1", "localhost"]:
+        raise HTTPException(status_code=403, detail="Forbidden: token only available locally")
     return {"token": API_TOKEN}
 
 # ── Mount API routers FIRST (so /api/* takes priority) ────────
@@ -141,4 +145,5 @@ else:
 
 if _FRONTEND_DIR.is_dir():
     app.mount("/", StaticFiles(directory=str(_FRONTEND_DIR), html=True), name="frontend")
+
 

@@ -173,10 +173,30 @@ jobs:
         Write-Host "All JavaScript files passed syntax check."
 
     - name: Build EXE with PyInstaller
+      shell: pwsh
       run: |
-        cd backend
-        pyinstaller --onefile --name ERROR-Panel main.py
-        dir dist
+        Write-Host "Building EXE from backend/app/main.py..."
+        pyinstaller --onefile --name ERROR-Panel backend/app/main.py
+
+        if ($LASTEXITCODE -ne 0) {
+          Write-Error "PyInstaller build failed!"
+          exit $LASTEXITCODE
+        }
+
+        Write-Host "PyInstaller build completed successfully."
+
+        $exePath = "backend/dist/ERROR-Panel.exe"
+
+        if (-not (Test-Path $exePath)) {
+          Write-Error "EXE was not generated: $exePath"
+          exit 1
+        }
+
+        $exeInfo = Get-Item $exePath
+        Write-Host "EXE generated successfully:"
+        Write-Host "  Path: $($exeInfo.FullName)"
+        Write-Host "  Size: $([math]::Round($exeInfo.Length / 1MB, 2)) MB"
+        Write-Host "  LastWriteTime: $($exeInfo.LastWriteTime)"
 
     - name: Upload EXE Artifact
       uses: actions/upload-artifact@v4

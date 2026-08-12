@@ -1,4 +1,4 @@
-﻿name: Windows CI / Build EXE
+name: Windows CI / Build EXE
 
 on:
   push:
@@ -9,46 +9,55 @@ on:
 jobs:
   build-windows:
     runs-on: windows-latest
-    
+
     steps:
     - uses: actions/checkout@v4
-    
+
     - name: Set up Python
       uses: actions/setup-python@v5
       with:
         python-version: '3.12'
-        
+
     - name: Install dependencies
       run: |
         cd backend
         pip install -r requirements.txt
-        pip install pyinstaller
-    
+        pip install pyinstaller flake8 pytest pytest-asyncio pytest-cov httpx
+
     - name: Lint backend (flake8)
       run: |
         cd backend
-        pip install flake8
         flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
-    
-    - name: Run Pytest (Backend)
+
+    - name: Run Unit/Integration tests (no server needed)
       run: |
         cd backend
-        pip install pytest pytest-asyncio pytest-cov
-        pytest tests/ --maxfail=1 --disable-warnings -v
-    
+        pytest tests/test_parser.py tests/test_simple.py --maxfail=1 --disable-warnings -v
+
+    - name: Start FastAPI server for E2E tests
+      run: |
+        cd backend
+        Start-Process python -ArgumentList "-m uvicorn app.main:app --host 127.0.0.1 --port 8000"
+        Start-Sleep -Seconds 5
+        Invoke-WebRequest -Uri http://127.0.0.1:8000/api/health -UseBasicParsing
+
+    - name: Run E2E tests
+      run: |
+        cd backend
+        pytest tests/test_e2e.py --maxfail=1 --disable-warnings -v
+
     - name: Check Frontend Syntax
       run: |
         node --check frontend/js/*.js
-    
+
     - name: Build EXE with PyInstaller
       run: |
         cd backend
         pyinstaller --onefile --name ERROR-Panel main.py
         dir dist
-    
+
     - name: Upload EXE Artifact
       uses: actions/upload-artifact@v4
       with:
         name: ERROR-Panel-Windows
         path: backend/dist/ERROR-Panel.exe
-

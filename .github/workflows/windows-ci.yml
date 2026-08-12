@@ -21,6 +21,7 @@ jobs:
     - name: Install dependencies
       run: |
         cd backend
+        python -m pip install --upgrade pip
         pip install -r requirements.txt
         pip install pyinstaller flake8 pytest pytest-asyncio pytest-cov httpx
 
@@ -29,76 +30,74 @@ jobs:
         cd backend
         flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
 
-    - name: Run Unit/Integration tests (no server needed)
+    - name: Run Unit tests
       run: |
         pytest tests/unit/test_parser.py tests/unit/test_scanner.py --maxfail=1 --disable-warnings -v
 
     - name: Start FastAPI server for E2E tests
       run: |
-        - name: Start FastAPI server for E2E tests
-  run: |
-    cd backend
-    $log = "$env:GITHUB_WORKSPACE\uvicorn.log"
-    Write-Host "Starting Uvicorn with log file: $log"
+        cd backend
+        $log = "$env:GITHUB_WORKSPACE\uvicorn.log"
+        Write-Host "Starting Uvicorn with log file: $log"
 
-    $process = Start-Process `
-      -FilePath "python" `
-      -ArgumentList "-m", "uvicorn", "app.main:app", "--host", "127.0.0.1", "--port", "8000" `
-      -RedirectStandardOutput $log `
-      -RedirectStandardError $log `
-      -PassThru `
-      -WindowStyle Hidden
+        $process = Start-Process `
+          -FilePath "python" `
+          -ArgumentList "-m", "uvicorn", "app.main:app", "--host", "127.0.0.1", "--port", "8000" `
+          -RedirectStandardOutput $log `
+          -RedirectStandardError $log `
+          -PassThru `
+          -WindowStyle Hidden
 
-    Write-Host "Uvicorn process started with PID: $($process.Id)"
-    Write-Host "Waiting for server to become ready..."
+        Write-Host "Uvicorn process started with PID: $($process.Id)"
+        Write-Host "Waiting for server to become ready..."
 
-    $ready = $false
-    for ($i = 1; $i -le 30; $i++) {
-        Start-Sleep -Seconds 1
+        $ready = $false
+        for ($i = 1; $i -le 30; $i++) {
+            Start-Sleep -Seconds 1
 
-        if ($process.HasExited) {
-            Write-Host "Uvicorn process exited early with code: $($process.ExitCode)"
-            Write-Host "--- Uvicorn log start ---"
+            if ($process.HasExited) {
+                Write-Host "Uvicorn process exited early with code: $($process.ExitCode)"
+                Write-Host "--- Uvicorn log start ---"
+                if (Test-Path $log) {
+                    Get-Content $log
+                } else {
+                    Write-Host "Log file not found at: $log"
+                }
+                Write-Host "--- Uvicorn log end ---"
+                exit 1
+            }
+
+            try {
+                $response = Invoke-WebRequest `
+                  -Uri "http://127.0.0.1:8000/api/health" `
+                  -UseBasicParsing `
+                  -TimeoutSec 2
+
+                if ($response.StatusCode -eq 200) {
+                    Write-Host "FastAPI server is ready and responding!"
+                    $ready = $true
+                    break
+                }
+            } catch {
+                Write-Host "Waiting for FastAPI... attempt $i/30"
+            }
+        }
+
+        if (-not $ready) {
+            Write-Host "FastAPI server did not become ready within 30 seconds."
             if (Test-Path $log) {
+                Write-Host "--- Uvicorn log start ---"
                 Get-Content $log
+                Write-Host "--- Uvicorn log end ---"
             } else {
                 Write-Host "Log file not found at: $log"
             }
-            Write-Host "--- Uvicorn log end ---"
             exit 1
         }
 
-        try {
-            $response = Invoke-WebRequest `
-              -Uri "http://127.0.0.1:8000/api/health" `
-              -UseBasicParsing `
-              -TimeoutSec 2
-
-            if ($response.StatusCode -eq 200) {
-                Write-Host "FastAPI server is ready and responding!"
-                $ready = $true
-                break
-            }
-        } catch {
-            Write-Host "Waiting for FastAPI... attempt $i/30"
-        }
-    }
-
-    if (-not $ready) {
-        Write-Host "FastAPI server did not become ready within 30 seconds."
-        if (Test-Path $log) {
-            Write-Host "--- Uvicorn log start ---"
-            Get-Content $log
-            Write-Host "--- Uvicorn log end ---"
-        } else {
-            Write-Host "Log file not found at: $log"
-        }
-        exit 1
-    }
-
     - name: Run E2E tests
       run: |
-        pytest tests/e2e/ -v --maxfail=1 --disable-warnings -v
+        pytest tests/e2e/ -v --maxfail=1 --disable-warnings
 
     - name: Check Frontend Syntax
       run: |

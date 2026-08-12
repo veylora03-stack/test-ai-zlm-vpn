@@ -103,21 +103,36 @@ COUNTRY_MAP: dict[str, str] = {
 }
 
 def extract_country_code(text: str) -> Optional[str]:
-    """Scan text for country names, cities, or 2-letter codes; return ISO alpha-2 or None."""
-    low = text.lower()
-    
-    # Check for full names first (more specific)
+    if not text:
+        return None
+
+    # مجموعه کدهای ISO دوحرفی معتبر
+    ISO_CODES = {
+        "DE", "US", "GB", "FR", "CA", "SE", "FI", "AT",
+        "CH", "TR", "AE", "JP", "SG", "AU", "BR", "IN",
+        "RU", "KR", "CN", "HK", "PL", "RO", "UA", "ES",
+        "IT", "DK", "NO", "BE", "IE", "PT", "CZ", "HU",
+        "AR", "MX", "ID", "TH", "VN", "PH", "MY", "TW",
+        "IL", "EG", "ZA", "NG", "KE", "GR", "BG", "HR",
+        "RS", "SK", "SI", "EE", "LV", "LT", "CY", "MT",
+        "IS", "LU", "NZ", "CL", "CO", "PE", "PK", "BD",
+        "LK", "NP", "KZ", "UZ", "GE", "AM", "AZ",
+    }
+
+    text_lower = text.lower()
+
+    # مرحله 1: بررسی نام‌های کامل کشور
     for name, code in COUNTRY_MAP.items():
-        if name in low:
+        if name in text_lower:
             return code
-    
-    # Check for standalone 2-letter country codes (e.g., "DE" in "DE-Frankfurt")
+
+    # مرحله 2: بررسی کدهای دوحرفی
     m = re.search(r'\b([A-Za-z]{2})\b', text)
     if m:
         candidate = m.group(1).upper()
-        if candidate.lower() in COUNTRY_MAP:
-            return COUNTRY_MAP[candidate.lower()]
-    
+        if candidate in ISO_CODES:
+            return candidate
+
     return None
 
 # ── Validation helpers ─────────────────────────────────────────────────

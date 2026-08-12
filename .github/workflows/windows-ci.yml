@@ -34,6 +34,12 @@ jobs:
       run: |
         pytest tests/unit/test_parser.py tests/unit/test_scanner.py --maxfail=1 --disable-warnings -v
 
+    - name: Verify Python package structure
+      run: |
+        python -c "import backend; print('✅ backend package found at:', backend.__file__)"
+        python -c "from backend.core.logger import logger; print('✅ Logger import OK')"
+        python -c "from backend.app.main import app; print('✅ Application import OK')"
+
     - name: Start FastAPI server for E2E tests
       run: |
         $stdoutLog = "$env:GITHUB_WORKSPACE\uvicorn.stdout.log"

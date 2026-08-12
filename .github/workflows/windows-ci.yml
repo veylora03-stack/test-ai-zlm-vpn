@@ -114,9 +114,68 @@ jobs:
             exit 1
         }
 
+        Write-Host "Server is ready. Performing post-readiness checks..."
+        Start-Sleep -Seconds 2
+
+        if ($process.HasExited) {
+            Write-Host "Uvicorn process died after readiness check!"
+            Write-Host "Exit code: $($process.ExitCode)"
+            Write-Host "--- Uvicorn stdout ---"
+            if (Test-Path $stdoutLog) {
+                Get-Content $stdoutLog
+            }
+            Write-Host "--- Uvicorn stderr ---"
+            if (Test-Path $stderrLog) {
+                Get-Content $stderrLog
+            }
+            exit 1
+        }
+
+        Write-Host "Uvicorn process is still alive (PID: $($process.Id))"
+
+        Write-Host "=== Port 8000 status ==="
+        netstat -ano | findstr :8000
+
+        Write-Host "=== Direct HTTPX connectivity test ==="
+        python -c "import httpx; r=httpx.get('http://127.0.0.1:8000/api/health', trust_env=False, timeout=5); print(f'HTTPX status: {r.status_code}'); print(r.text)"
+
+        if ($LASTEXITCODE -ne 0) {
+            Write-Host "Direct HTTPX test failed!"
+            exit 1
+        }
+
+        Write-Host "All diagnostics passed. Proceeding to E2E tests."
+
     - name: Run E2E tests
       run: |
         pytest tests/e2e/ -v --maxfail=1 --disable-warnings
+
+    - name: Dump Uvicorn diagnostics (if E2E fails)
+      if: always()
+      shell: pwsh
+      run: |
+        $stdoutLog = "$env:GITHUB_WORKSPACE\uvicorn.stdout.log"
+        $stderrLog = "$env:GITHUB_WORKSPACE\uvicorn.stderr.log"
+
+        Write-Host "=== Uvicorn STDOUT (if exists) ==="
+        if (Test-Path $stdoutLog) {
+            Get-Content $stdoutLog
+        } else {
+            Write-Host "No stdout log found."
+        }
+
+        Write-Host "=== Uvicorn STDERR (if exists) ==="
+        if (Test-Path $stderrLog) {
+            Get-Content $stderrLog
+        } else {
+            Write-Host "No stderr log found."
+        }
+
+        Write-Host "=== Port 8000 status ==="
+        netstat -ano | findstr :8000
+
+        Write-Host "=== Process list for python ==="
+        Get-Process -Name python -ErrorAction SilentlyContinue
 
     - name: Check Frontend Syntax
       run: |

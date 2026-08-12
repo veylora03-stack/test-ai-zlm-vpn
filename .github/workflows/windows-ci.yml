@@ -172,16 +172,24 @@ jobs:
 
         Write-Host "All JavaScript files passed syntax check."
 
-    - name: Build EXE with PyInstaller
+    - name: Build EXE with PyInstaller (with backend package support)
       shell: pwsh
       run: |
         Write-Host "Building EXE from backend/app/main.py..."
-        Write-Host "Output directory: backend/dist/"
+        Write-Host "Using --paths . to include project root for backend package"
+        Write-Host "Using --hidden-import to explicitly include backend modules"
 
         pyinstaller `
           --onefile `
           --name ERROR-Panel `
           --distpath backend/dist `
+          --paths . `
+          --hidden-import backend `
+          --hidden-import backend.core `
+          --hidden-import backend.app `
+          --hidden-import backend.services `
+          --hidden-import backend.api `
+          --hidden-import backend.middleware `
           backend/app/main.py
 
         if ($LASTEXITCODE -ne 0) {

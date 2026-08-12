@@ -144,8 +144,33 @@ jobs:
         }
 
     - name: Check Frontend Syntax
+      shell: pwsh
       run: |
-        node --check frontend/js/*.js
+        $jsFiles = Get-ChildItem -Path "frontend/js" -Filter "*.js" -File -Recurse
+
+        if ($jsFiles.Count -eq 0) {
+          Write-Error "No JavaScript files found in frontend/js"
+          exit 1
+        }
+
+        Write-Host "Found $($jsFiles.Count) JavaScript files."
+        $allPassed = $true
+
+        foreach ($file in $jsFiles) {
+          Write-Host "Checking: $($file.FullName)"
+          node --check "$($file.FullName)"
+
+          if ($LASTEXITCODE -ne 0) {
+            Write-Error "JavaScript syntax check failed: $($file.FullName)"
+            $allPassed = $false
+          }
+        }
+
+        if (-not $allPassed) {
+          exit 1
+        }
+
+        Write-Host "All JavaScript files passed syntax check."
 
     - name: Build EXE with PyInstaller
       run: |

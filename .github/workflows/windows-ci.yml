@@ -37,14 +37,17 @@ jobs:
     - name: Start FastAPI server for E2E tests
       run: |
         cd backend
-        $log = "$env:GITHUB_WORKSPACE\uvicorn.log"
-        Write-Host "Starting Uvicorn with log file: $log"
+        $stdoutLog = "$env:GITHUB_WORKSPACE\uvicorn.stdout.log"
+        $stderrLog = "$env:GITHUB_WORKSPACE\uvicorn.stderr.log"
+
+        Write-Host "Starting Uvicorn with stdout: $stdoutLog"
+        Write-Host "Starting Uvicorn with stderr: $stderrLog"
 
         $process = Start-Process `
           -FilePath "python" `
-          -ArgumentList "-m", "uvicorn", "app.main:app", "--host", "127.0.0.1", "--port", "8000" `
-          -RedirectStandardOutput $log `
-          -RedirectStandardError $log `
+          -ArgumentList "-m", "uvicorn", "app.main:app", "--host", "127.0.0.1", "--port", "8000", "--log-level", "info" `
+          -RedirectStandardOutput $stdoutLog `
+          -RedirectStandardError $stderrLog `
           -PassThru `
           -WindowStyle Hidden
 
@@ -57,13 +60,18 @@ jobs:
 
             if ($process.HasExited) {
                 Write-Host "Uvicorn process exited early with code: $($process.ExitCode)"
-                Write-Host "--- Uvicorn log start ---"
-                if (Test-Path $log) {
-                    Get-Content $log
+                Write-Host "--- Uvicorn stdout ---"
+                if (Test-Path $stdoutLog) {
+                    Get-Content $stdoutLog
                 } else {
-                    Write-Host "Log file not found at: $log"
+                    Write-Host "stdout log not found: $stdoutLog"
                 }
-                Write-Host "--- Uvicorn log end ---"
+                Write-Host "--- Uvicorn stderr ---"
+                if (Test-Path $stderrLog) {
+                    Get-Content $stderrLog
+                } else {
+                    Write-Host "stderr log not found: $stderrLog"
+                }
                 exit 1
             }
 
@@ -85,12 +93,17 @@ jobs:
 
         if (-not $ready) {
             Write-Host "FastAPI server did not become ready within 30 seconds."
-            if (Test-Path $log) {
-                Write-Host "--- Uvicorn log start ---"
-                Get-Content $log
-                Write-Host "--- Uvicorn log end ---"
+            Write-Host "--- Uvicorn stdout ---"
+            if (Test-Path $stdoutLog) {
+                Get-Content $stdoutLog
             } else {
-                Write-Host "Log file not found at: $log"
+                Write-Host "stdout log not found: $stdoutLog"
+            }
+            Write-Host "--- Uvicorn stderr ---"
+            if (Test-Path $stderrLog) {
+                Get-Content $stderrLog
+            } else {
+                Write-Host "stderr log not found: $stderrLog"
             }
             exit 1
         }

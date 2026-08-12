@@ -815,3 +815,99 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 });
 
+
+
+
+// ── SECURE DOM MANIPULATION (XSS Prevention) ────────────────
+// Override any unsafe rendering with secure event delegation
+function secureRenderProfiles(profiles) {
+    const tbody = document.getElementById('profilesTableBody') || document.querySelector('tbody');
+    if (!tbody) return;
+
+    // Clear existing content safely
+    while (tbody.firstChild) {
+        tbody.removeChild(tbody.firstChild);
+    }
+
+    profiles.forEach(p => {
+        const tr = document.createElement('tr');
+
+        // Name cell
+        const tdName = document.createElement('td');
+        tdName.textContent = p.name || 'Unknown';
+        tr.appendChild(tdName);
+
+        // Protocol cell
+        const tdProtocol = document.createElement('td');
+        tdProtocol.textContent = p.protocol || '-';
+        tr.appendChild(tdProtocol);
+
+        // Server cell
+        const tdServer = document.createElement('td');
+        tdServer.textContent = `${p.server_host || '-'}:${p.server_port || '-'}`;
+        tr.appendChild(tdServer);
+
+        // Status cell
+        const tdStatus = document.createElement('td');
+        tdStatus.textContent = p.status || 'new';
+        tr.appendChild(tdStatus);
+
+        // Actions cell — use data attributes, NOT inline onclick
+        const tdActions = document.createElement('td');
+
+        const btnScan = document.createElement('button');
+        btnScan.className = 'btn btn-primary btn-sm me-1';
+        btnScan.textContent = 'اسکن';
+        btnScan.dataset.action = 'scan';
+        btnScan.dataset.id = p.id;
+        tdActions.appendChild(btnScan);
+
+        const btnTest = document.createElement('button');
+        btnTest.className = 'btn btn-info btn-sm me-1';
+        btnTest.textContent = 'تست';
+        btnTest.dataset.action = 'test';
+        btnScan.dataset.id = p.id;
+        tdActions.appendChild(btnTest);
+
+        const btnDelete = document.createElement('button');
+        btnDelete.className = 'btn btn-danger btn-sm';
+        btnDelete.textContent = 'حذف';
+        btnDelete.dataset.action = 'delete';
+        btnDelete.dataset.id = p.id;
+        tdActions.appendChild(btnDelete);
+
+        tr.appendChild(tdActions);
+        tbody.appendChild(tr);
+    });
+}
+
+// Event Delegation for Table Actions
+document.addEventListener('DOMContentLoaded', () => {
+    const tbody = document.getElementById('profilesTableBody') || document.querySelector('tbody');
+    if (!tbody) return;
+
+    tbody.addEventListener('click', async (event) => {
+        const button = event.target.closest('button[data-action]');
+        if (!button) return;
+
+        const action = button.dataset.action;
+        const id = parseInt(button.dataset.id, 10);
+
+        if (isNaN(id)) return;
+
+        if (action === 'scan' && typeof handleScan === 'function') {
+            await handleScan(id);
+        } else if (action === 'test' && typeof handleTest === 'function') {
+            await handleTest(id);
+        } else if (action === 'delete' && typeof handleDelete === 'function') {
+            await handleDelete(id, 'Profile');
+        }
+    });
+    
+    // Override the original render function if it exists
+    if (typeof window.renderProfilesTable === 'function') {
+        window.renderProfilesTable = secureRenderProfiles;
+    } else if (typeof window.renderServersTable === 'function') {
+        window.renderServersTable = secureRenderProfiles;
+    }
+});

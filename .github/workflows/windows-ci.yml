@@ -40,7 +40,8 @@ jobs:
         python -c "from backend.core.logger import logger; print('OK: logger import successful')"
         python -c "from backend.app.main import app; print('OK: application import successful')"
 
-    - name: Start FastAPI server for E2E tests
+    - name: Start FastAPI and Run E2E tests
+      shell: pwsh
       run: |
         $stdoutLog = "$env:GITHUB_WORKSPACE\uvicorn.stdout.log"
         $stderrLog = "$env:GITHUB_WORKSPACE\uvicorn.stderr.log"
@@ -57,15 +58,49 @@ jobs:
           -PassThru `
           -WindowStyle Hidden
 
-        Write-Host "Uvicorn process started with PID: $($process.Id)"
-        Write-Host "Waiting for server to become ready..."
+        try {
+            Write-Host "Uvicorn process started with PID: $($process.Id)"
+            Write-Host "Waiting for server to become ready..."
 
-        $ready = $false
-        for ($i = 1; $i -le 30; $i++) {
-            Start-Sleep -Seconds 1
+            $ready = $false
+            for ($i = 1; $i -le 30; $i++) {
+                Start-Sleep -Seconds 1
 
-            if ($process.HasExited) {
-                Write-Host "Uvicorn process exited early with code: $($process.ExitCode)"
+                if ($process.HasExited) {
+                    Write-Host "Uvicorn process exited early with code: $($process.ExitCode)"
+                    Write-Host "--- Uvicorn stdout ---"
+                    if (Test-Path $stdoutLog) {
+                        Get-Content $stdoutLog
+                    } else {
+                        Write-Host "stdout log not found: $stdoutLog"
+                    }
+                    Write-Host "--- Uvicorn stderr ---"
+                    if (Test-Path $stderrLog) {
+                        Get-Content $stderrLog
+                    } else {
+                        Write-Host "stderr log not found: $stderrLog"
+                    }
+                    exit 1
+                }
+
+                try {
+                    $response = Invoke-WebRequest `
+                      -Uri "http://127.0.0.1:8000/api/health" `
+                      -UseBasicParsing `
+                      -TimeoutSec 2
+
+                    if ($response.StatusCode -eq 200) {
+                        Write-Host "FastAPI server is ready and responding!"
+                        $ready = $true
+                        break
+                    }
+                } catch {
+                    Write-Host "Waiting for FastAPI... attempt $i/30"
+                }
+            }
+
+            if (-not $ready) {
+                Write-Host "FastAPI server did not become ready within 30 seconds."
                 Write-Host "--- Uvicorn stdout ---"
                 if (Test-Path $stdoutLog) {
                     Get-Content $stdoutLog
@@ -81,101 +116,32 @@ jobs:
                 exit 1
             }
 
-            try {
-                $response = Invoke-WebRequest `
-                  -Uri "http://127.0.0.1:8000/api/health" `
-                  -UseBasicParsing `
-                  -TimeoutSec 2
+            Write-Host "Server is ready. Running E2E tests..."
+            pytest tests/e2e/ -v --maxfail=1 --disable-warnings
 
-                if ($response.StatusCode -eq 200) {
-                    Write-Host "FastAPI server is ready and responding!"
-                    $ready = $true
-                    break
+            $pytestExitCode = $LASTEXITCODE
+
+            if ($pytestExitCode -ne 0) {
+                Write-Host "E2E tests failed with exit code: $pytestExitCode"
+                Write-Host "--- Uvicorn stdout ---"
+                if (Test-Path $stdoutLog) {
+                    Get-Content $stdoutLog
                 }
-            } catch {
-                Write-Host "Waiting for FastAPI... attempt $i/30"
+                Write-Host "--- Uvicorn stderr ---"
+                if (Test-Path $stderrLog) {
+                    Get-Content $stderrLog
+                }
+                exit $pytestExitCode
+            }
+
+            Write-Host "All E2E tests passed!"
+
+        } finally {
+            if ($process -and -not $process.HasExited) {
+                Write-Host "Stopping Uvicorn..."
+                Stop-Process -Id $process.Id -Force -ErrorAction SilentlyContinue
             }
         }
-
-        if (-not $ready) {
-            Write-Host "FastAPI server did not become ready within 30 seconds."
-            Write-Host "--- Uvicorn stdout ---"
-            if (Test-Path $stdoutLog) {
-                Get-Content $stdoutLog
-            } else {
-                Write-Host "stdout log not found: $stdoutLog"
-            }
-            Write-Host "--- Uvicorn stderr ---"
-            if (Test-Path $stderrLog) {
-                Get-Content $stderrLog
-            } else {
-                Write-Host "stderr log not found: $stderrLog"
-            }
-            exit 1
-        }
-
-        Write-Host "Server is ready. Performing post-readiness checks..."
-        Start-Sleep -Seconds 2
-
-        if ($process.HasExited) {
-            Write-Host "Uvicorn process died after readiness check!"
-            Write-Host "Exit code: $($process.ExitCode)"
-            Write-Host "--- Uvicorn stdout ---"
-            if (Test-Path $stdoutLog) {
-                Get-Content $stdoutLog
-            }
-            Write-Host "--- Uvicorn stderr ---"
-            if (Test-Path $stderrLog) {
-                Get-Content $stderrLog
-            }
-            exit 1
-        }
-
-        Write-Host "Uvicorn process is still alive (PID: $($process.Id))"
-
-        Write-Host "=== Port 8000 status ==="
-        netstat -ano | findstr :8000
-
-        Write-Host "=== Direct HTTPX connectivity test ==="
-        python -c "import httpx; r=httpx.get('http://127.0.0.1:8000/api/health', trust_env=False, timeout=5); print(f'HTTPX status: {r.status_code}'); print(r.text)"
-
-        if ($LASTEXITCODE -ne 0) {
-            Write-Host "Direct HTTPX test failed!"
-            exit 1
-        }
-
-        Write-Host "All diagnostics passed. Proceeding to E2E tests."
-
-    - name: Run E2E tests
-      run: |
-        pytest tests/e2e/ -v --maxfail=1 --disable-warnings
-
-    - name: Dump Uvicorn diagnostics (if E2E fails)
-      if: always()
-      shell: pwsh
-      run: |
-        $stdoutLog = "$env:GITHUB_WORKSPACE\uvicorn.stdout.log"
-        $stderrLog = "$env:GITHUB_WORKSPACE\uvicorn.stderr.log"
-
-        Write-Host "=== Uvicorn STDOUT (if exists) ==="
-        if (Test-Path $stdoutLog) {
-            Get-Content $stdoutLog
-        } else {
-            Write-Host "No stdout log found."
-        }
-
-        Write-Host "=== Uvicorn STDERR (if exists) ==="
-        if (Test-Path $stderrLog) {
-            Get-Content $stderrLog
-        } else {
-            Write-Host "No stderr log found."
-        }
-
-        Write-Host "=== Port 8000 status ==="
-        netstat -ano | findstr :8000
-
-        Write-Host "=== Process list for python ==="
-        Get-Process -Name python -ErrorAction SilentlyContinue
 
     - name: Check Frontend Syntax
       run: |

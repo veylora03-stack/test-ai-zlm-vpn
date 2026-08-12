@@ -22,7 +22,7 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
 from backend.core.logger import logger
 
-from .db import create_tables, seed_settings_defaults, close_db
+from .db import create_tables, seed_settings_defaults, close_db, close_db
 from .api.sources import router as sources_router
 from .api.profiles import router as profiles_router
 from .api.sync import router as sync_router

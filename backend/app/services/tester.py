@@ -11,6 +11,7 @@ from the settings table. Falls back to defaults if not present.
 import asyncio
 import json
 import time
+import socket
 from typing import Optional
 
 from sqlalchemy import select

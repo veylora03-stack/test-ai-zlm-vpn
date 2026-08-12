@@ -226,6 +226,32 @@ def _check_weak_cipher(raw_text: str, protocol: str) -> Optional[dict]:
     
     return None
 
+
+def _strip_comments(raw_text: str, protocol: str) -> str:
+    """
+    Strip comments from config text before running security checks.
+    Handles protocol-specific comment styles (#, ;, //).
+    Prevents false positives from commented-out directives.
+    """
+    comment_chars = ('#', ';')
+    if protocol in ('vless', 'vmess', 'xray'):
+        comment_chars = ('#', ';', '//')
+    
+    lines = []
+    for line in raw_text.splitlines():
+        stripped = line.strip()
+        if any(stripped.startswith(c) for c in comment_chars):
+            continue
+        
+        # Strip inline comments (simple approach)
+        for char in comment_chars:
+            if char in line:
+                line = line.split(char)[0]
+        
+        lines.append(line)
+    
+    return '\n'.join(lines)
+
 def _check_http_endpoint(raw_text: str, protocol: str) -> Optional[dict]:
     """Weight 15: HTTP (non-HTTPS) endpoint addresses in sensitive contexts."""
     # Only flag HTTP in contexts where it's actually suspicious

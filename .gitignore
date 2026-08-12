@@ -30,3 +30,9 @@ logs/
 .coverage
 htmlcov/
 coverage.xml
+
+.coverage.*
+.pytest_cache/
+.tox/
+backend/data/secret.key
+backend/data/backups/*.db.enc

@@ -22,6 +22,7 @@ from ..services.fetcher import FetchError, SchemeError, SizeError, fetch_source
 from ..services.parser import parse_config
 from ..services.scanner import scan_profile
 from backend.core.paths import RAW_DIR
+from backend.core.logger import logger
 
 MAX_SOURCES = 100
 
@@ -53,16 +54,13 @@ async def sync_source(source_id: int, db: AsyncSession = Depends(get_db)):
         fetched = await fetch_source(source.url)
     except SchemeError as exc:
         source.last_error = str(exc)
-        await db.commit()
-        raise HTTPException(status_code=400, detail=str(exc))
+                raise HTTPException(status_code=400, detail=str(exc))
     except SizeError as exc:
         source.last_error = str(exc)
-        await db.commit()
-        raise HTTPException(status_code=400, detail=str(exc))
+                raise HTTPException(status_code=400, detail=str(exc))
     except FetchError as exc:
         source.last_error = str(exc)
-        await db.commit()
-        raise HTTPException(status_code=502, detail=str(exc))
+                raise HTTPException(status_code=502, detail=str(exc))
 
     # ── Save raw content to disk ───────────────────────────────────────
     os.makedirs(RAW_DIR, exist_ok=True)
@@ -78,6 +76,7 @@ async def sync_source(source_id: int, db: AsyncSession = Depends(get_db)):
     # ── Create profiles (quarantined by default, with dedup) ───────────
     imported_count = 0
     duplicates = 0
+    new_profile_ids: list[int] = []  # Track IDs for auto-scan
     for cfg in parsed:
         # Compute fingerprint for dedup
         fp = fingerprint(cfg)
@@ -101,23 +100,25 @@ async def sync_source(source_id: int, db: AsyncSession = Depends(get_db)):
             notes=cfg.get("notes"),
         )
         db.add(profile)
+        await db.flush()  # Flush to get ID
+        new_profile_ids.append(profile.id)
         imported_count += 1
 
     if imported_count > 0:
         await db.flush()
 
     # ── Auto-scan each newly imported profile ──────────────────────────
-    # Get all profiles created in this sync (they share raw_path as config_ref)
-    if imported_count > 0:
-        new_profiles_result = await db.execute(
-            select(Profile)
-            .where(Profile.source_id == source.id, Profile.config_ref == raw_path)
+    # CRITICAL FIX: Query by tracked IDs, not by config_ref path
+    for profile_id in new_profile_ids:
+        result = await db.execute(
+            select(Profile).where(Profile.id == profile_id)
         )
-        for new_profile in new_profiles_result.scalars().all():
+        new_profile = result.scalar_one_or_none()
+        if new_profile:
             try:
                 await scan_profile(db, new_profile)
-            except Exception:
-                pass  # Scan failure should not block sync
+            except Exception as e:
+                logger.warning(f"Scan failed for profile {profile_id}: {e}")
 
     # ── Update source on success ───────────────────────────────────────
     source.last_sync_at = datetime.now(timezone.utc)

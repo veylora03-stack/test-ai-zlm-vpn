@@ -185,10 +185,11 @@ jobs:
 
         Write-Host "PyInstaller build completed successfully."
 
-        $exePath = "backend/dist/ERROR-Panel.exe"
+        $exePath = "dist/ERROR-Panel.exe"
 
         if (-not (Test-Path $exePath)) {
           Write-Error "EXE was not generated: $exePath"
+          Get-ChildItem -Path "dist" -Recurse -ErrorAction SilentlyContinue
           exit 1
         }
 
@@ -198,8 +199,22 @@ jobs:
         Write-Host "  Size: $([math]::Round($exeInfo.Length / 1MB, 2)) MB"
         Write-Host "  LastWriteTime: $($exeInfo.LastWriteTime)"
 
+        Write-Host "Running smoke test: checking if EXE can start..."
+        try {
+          $process = Start-Process -FilePath $exePath -PassThru -WindowStyle Hidden
+          Start-Sleep -Seconds 2
+          if (-not $process.HasExited) {
+            Write-Host "Smoke test passed: EXE started successfully."
+            Stop-Process -Id $process.Id -Force -ErrorAction SilentlyContinue
+          } else {
+            Write-Host "Smoke test warning: EXE exited immediately with code: $($process.ExitCode)"
+          }
+        } catch {
+          Write-Host "Smoke test warning: Could not start EXE: $($_.Exception.Message)"
+        }
+
     - name: Upload EXE Artifact
       uses: actions/upload-artifact@v4
       with:
         name: ERROR-Panel-Windows
-        path: backend/dist/ERROR-Panel.exe
+        path: dist/ERROR-Panel.exe

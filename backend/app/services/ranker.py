@@ -1,4 +1,4 @@
-"""ERROR-PANEL — Ranking Engine Service.
+﻿"""ERROR-PANEL — Ranking Engine Service.
 
 Computes composite scores for VPN profiles using the formula:
   score = w_dl*download_norm + w_ul*upload_norm + w_ping*ping_norm
@@ -21,7 +21,7 @@ Eligible profiles: status in ("approved", "tested") only.
 
 import json
 
-from sqlalchemy import select
+from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..models import Metric, Profile, Settings
@@ -174,3 +174,4 @@ async def top_profiles(
         ranked.sort(key=lambda r: r["score"], reverse=True)
 
     return ranked[:limit]
+

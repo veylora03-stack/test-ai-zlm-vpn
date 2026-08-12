@@ -1,0 +1,53 @@
+﻿name: Windows CI / Build EXE
+
+on:
+  push:
+    branches: [ main, master, develop ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.12'
+        
+    - name: Install dependencies
+      run: |
+        cd backend
+        pip install -r requirements.txt
+        pip install pyinstaller
+    
+    - name: Lint backend (flake8)
+      run: |
+        cd backend
+        pip install flake8
+        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+    
+    - name: Run Pytest (Backend)
+      run: |
+        cd backend
+        pip install pytest pytest-asyncio pytest-cov
+        pytest tests/ --maxfail=1 --disable-warnings -v
+    
+    - name: Check Frontend Syntax
+      run: |
+        node --check frontend/js/*.js
+    
+    - name: Build EXE with PyInstaller
+      run: |
+        cd backend
+        pyinstaller --onefile --name ERROR-Panel main.py
+        dir dist
+    
+    - name: Upload EXE Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: ERROR-Panel-Windows
+        path: backend/dist/ERROR-Panel.exe

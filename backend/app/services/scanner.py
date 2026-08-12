@@ -5,6 +5,7 @@ Optimized regex patterns for better accuracy.
 """
 
 import json
+import ipaddress
 import re
 from datetime import datetime, timezone
 from typing import Optional

@@ -57,8 +57,8 @@
 
 ```powershell
 # Clone the repo
-git clone https://github.com/veylora03-stack/ERROR-PANEL.git
-cd ERROR-PANEL
+git clone https://github.com/veylora03-stack/test-ai-zlm-vpn.git
+cd test-ai-zlm-vpn
 
 # Create virtual environment
 python -m venv .venv

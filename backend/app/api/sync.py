@@ -28,6 +28,7 @@ from backend.core.logger import logger
 router = APIRouter(prefix="/api", tags=["sync"])
 
 MAX_SOURCES = 100
+MAX_PROFILES_PER_SYNC = 1000
 
 
 @router.post("/sources/{source_id}/sync")
@@ -82,6 +83,10 @@ async def sync_source(source_id: int, db: AsyncSession = Depends(get_db)):
     new_profile_ids: list[int] = []  # Track IDs for auto-scan
 
     for cfg in parsed:
+        if imported_count >= MAX_PROFILES_PER_SYNC:
+            logger.warning(f"Reached MAX_PROFILES_PER_SYNC ({MAX_PROFILES_PER_SYNC}) limit. Stopping import for this sync.")
+            break
+            
         fp = fingerprint(cfg)
         existing = await find_duplicate(db, fp)
         if existing is not None:

@@ -111,6 +111,11 @@ async def fetch_source(url: str) -> dict:
             max_redirects=5,
         ) as client:
             async with client.stream("GET", url) as resp:
+                # SSRF Fix: Validate final URL after redirects
+                final_url = str(resp.url)
+                if not await _is_url_safe(final_url):
+                    raise FetchSSRFError(f"Redirected to a forbidden internal IP: {final_url}")
+                
                 # Check final URL scheme after redirects
                 final_scheme = str(resp.url.scheme).lower()
                 if final_scheme not in ("http", "https"):

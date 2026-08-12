@@ -40,14 +40,6 @@ async def sync_source(source_id: int, db: AsyncSession = Depends(get_db)):
     Error state persistence uses a separate session to avoid
     rollback conflicts.
     """
-    # ── Enforce source limit efficiently ──────────────────────
-    count_result = await db.execute(select(func.count(Source.id)))
-    if count_result.scalar() >= MAX_SOURCES:
-        raise HTTPException(
-            status_code=429,
-            detail=f"Maximum source limit ({MAX_SOURCES}) reached"
-        )
-
     # ── Load source ───────────────────────────────────────────
     result = await db.execute(select(Source).where(Source.id == source_id))
     source = result.scalar_one_or_none()

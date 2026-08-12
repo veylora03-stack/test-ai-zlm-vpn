@@ -73,11 +73,16 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         client_ip = request.client.host if request.client else "unknown"
         now = time.time()
 
+        # Clean up old timestamps for this IP
         self.requests[client_ip] = [
             t for t in self.requests[client_ip] if now - t < self.window
         ]
 
-        if len(self.requests[client_ip]) >= self.max_requests:
+        # Memory Leak Fix: Remove IP key if list is empty
+        if not self.requests[client_ip]:
+            del self.requests[client_ip]
+
+        if len(self.requests.get(client_ip, [])) >= self.max_requests:
             return JSONResponse(
                 status_code=429,
                 content={"detail": "Rate limit exceeded. Try again later."}

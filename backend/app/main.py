@@ -55,7 +55,7 @@ app.add_middleware(
     allow_origins=["http://127.0.0.1:8000", "http://localhost:8000"],
     allow_credentials=False,
     allow_methods=["GET", "POST", "PATCH", "DELETE"],
-    allow_headers=["Content-Type"],
+    allow_headers=["Content-Type", "X-API-Token"],
 )
 
 
@@ -148,6 +148,7 @@ else:
 
 if _FRONTEND_DIR.is_dir():
     app.mount("/", StaticFiles(directory=str(_FRONTEND_DIR), html=True), name="frontend")
+
 
 
 

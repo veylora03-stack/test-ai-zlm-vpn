@@ -26,7 +26,7 @@ jobs:
       - name: Run pip-audit
         run: |
           cd backend
-          pip-audit --desc || true
+          pip-audit --desc
       - name: Run tests
         run: pytest -v --cov=backend --cov-report=xml
       - uses: codecov/codecov-action@v4
@@ -41,3 +41,4 @@ jobs:
       - uses: jpetrucciani/bandit-check@1.7.0
         with:
           path: './backend'
+

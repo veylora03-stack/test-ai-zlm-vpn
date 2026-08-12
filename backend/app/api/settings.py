@@ -13,6 +13,7 @@ import io
 import json
 import os
 import shutil
+import time
 from datetime import datetime, timezone
 from typing import Optional
 
@@ -25,6 +26,7 @@ from ..db import get_db
 from ..models import AuditLog, Metric, Profile, Settings, Source
 from ..schemas import AuditLogResponse
 from ..services.audit import log_action
+from backend.core.logger import logger
 from ..services.crypto import encrypt_data
 
 router = APIRouter(prefix="/api", tags=["settings", "logs", "backup", "export"])

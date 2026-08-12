@@ -19,7 +19,7 @@ from ..db import get_db, AsyncSessionLocal
 from ..models import Profile, Source
 from ..services.audit import log_action
 from ..services.dedup import fingerprint, find_duplicate
-from ..services.fetcher import FetchError, SchemeError, SizeError, fetch_source
+from ..services.fetcher import FetchError, FetchSSRFError, SchemeError, SizeError, fetch_source
 from ..services.parser import parse_config
 from ..services.scanner import scan_profile
 from backend.core.paths import RAW_DIR
@@ -67,7 +67,7 @@ async def sync_source(source_id: int, db: AsyncSession = Depends(get_db)):
     # ── Fetch ─────────────────────────────────────────────────
     try:
         fetched = await fetch_source(source.url)
-    except (SchemeError, SizeError) as exc:
+    except (SchemeError, SizeError, FetchSSRFError) as exc:
         await _persist_source_error(source_id, str(exc))
         raise HTTPException(status_code=400, detail=str(exc))
     except FetchError as exc:

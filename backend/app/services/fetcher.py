@@ -7,6 +7,9 @@ Enforces: scheme check, timeout, max body size, redirect policy.
 import hashlib
 
 import httpx
+import ipaddress
+import socket
+import asyncio
 
 MAX_BODY_BYTES = 1 * 1024 * 1024  # 1 MB
 TIMEOUT_SECONDS = 30
@@ -26,6 +29,46 @@ class SizeError(FetchError):
     """Response body exceeds the maximum allowed size."""
     pass
 
+
+
+class FetchSSRFError(FetchError):
+    """URL points to a forbidden internal or private IP address."""
+    pass
+
+
+async def _is_url_safe(url: str) -> bool:
+    """
+    Check if the URL points to a public IP.
+    Blocks private, loopback, link-local, and reserved IPs to prevent SSRF.
+    """
+    from urllib.parse import urlparse
+    parsed = urlparse(url)
+    hostname = parsed.hostname
+    if not hostname:
+        return False
+
+    # If it's already an IP address, check it directly
+    try:
+        ip = ipaddress.ip_address(hostname)
+        return not (ip.is_private or ip.is_loopback or ip.is_link_local or ip.is_reserved or ip.is_multicast)
+    except ValueError:
+        pass # It's a domain name, needs resolution
+
+    # Resolve domain name to IP addresses
+    try:
+        loop = asyncio.get_event_loop()
+        infos = await loop.run_in_executor(None, socket.getaddrinfo, hostname, None)
+        for info in infos:
+            ip_str = info[4][0]
+            try:
+                ip = ipaddress.ip_address(ip_str)
+                if ip.is_private or ip.is_loopback or ip.is_link_local or ip.is_reserved or ip.is_multicast:
+                    return False # Resolved to a private IP
+            except ValueError:
+                continue
+        return True
+    except socket.gaierror:
+        return False # Cannot resolve, let httpx handle the error
 
 class NetworkError(FetchError):
     """Network-level failure (timeout, connection refused, etc.)."""
@@ -52,6 +95,10 @@ async def fetch_source(url: str) -> dict:
         SizeError:    if body exceeds 1 MB
         NetworkError: on timeout or connection failure
     """
+    # ── SSRF Protection ────────────────────────────────────────────────
+    if not await _is_url_safe(url):
+        raise FetchSSRFError(f"URL points to a forbidden internal or private IP: {url}")
+
     # ── Scheme check ───────────────────────────────────────────────────
     if not url.lower().startswith(("http://", "https://")):
         raise SchemeError(f"Scheme not allowed: {url.split('://', 1)[0] if '://' in url else url}")

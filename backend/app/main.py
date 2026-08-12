@@ -105,6 +105,9 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
 app.add_middleware(RateLimitMiddleware)
 app.add_middleware(RequestLoggingMiddleware)
 
+# ── Authentication Middleware ──────────────────────────────────
+app.add_middleware(APITokenMiddleware)
+
 
 # ── Token endpoint for frontend ──────────────────────────────────
 from backend.middleware.auth import API_TOKEN
@@ -145,5 +148,6 @@ else:
 
 if _FRONTEND_DIR.is_dir():
     app.mount("/", StaticFiles(directory=str(_FRONTEND_DIR), html=True), name="frontend")
+
 
 

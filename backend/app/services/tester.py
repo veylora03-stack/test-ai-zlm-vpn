@@ -109,7 +109,7 @@ async def test_profile(
             "error": "Missing host or port",
         }
 
-    semaphore = get_tester_get_tester_semaphore(concurrency)
+    semaphore = get_tester_semaphore(concurrency)
 
     async with semaphore:
         latencies: list[float] = []
@@ -170,4 +170,5 @@ async def test_profile(
         "reachable": reachable,
         "error": error,
     }
+
 
